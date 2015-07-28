@@ -103,8 +103,8 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
   # Insert a few rows
   my $db = $sql->db;
-  $sql->query('insert into names (name) values (?)', 'Sara');
-  $sql->query('insert into names (name) values (?)', 'Stefan');
+  $db->query('insert into names (name) values (?)', 'Sara');
+  $db->query('insert into names (name) values (?)', 'Stefan');
 
   # Insert more rows in a transaction
   eval {
