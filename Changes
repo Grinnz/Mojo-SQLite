@@ -1,4 +1,7 @@
 {{$NEXT}}
 
+0.002     2015-07-28 12:39:12 EDT
+  - Allow passing callback to query()
+
 0.001     2015-07-28 02:48:42 EDT
   - First release
