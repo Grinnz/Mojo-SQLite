@@ -46,11 +46,27 @@ sub ping { shift->dbh->ping }
 
 sub query {
   my ($self, $query) = (shift, shift);
+  my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 
-  my $sth = $self->dbh->prepare_cached($query, undef, 3);
-  $sth->execute(@_);
+  my ($sth, $errored, $error);
+  {
+    local $@;
+    eval {
+      $sth = $self->dbh->prepare_cached($query, undef, 3);
+      $sth->execute(@_);
+      1;
+    } or $errored = 1;
+    $error = $@ if $errored;
+  }
 
-  return Mojo::SQLite::Results->new(sth => $sth);
+  if ($errored) {
+    die $error unless $cb;
+    $error = $self->dbh->errstr;
+  }
+
+  my $results = Mojo::SQLite::Results->new(sth => $sth);
+  $self->$cb($error, $results) if $cb;
+  return $cb ? $self : $results;
 }
 
 1;
@@ -138,6 +154,13 @@ Check database connection.
 Execute a blocking statement and return a L<Mojo::SQLite::Results> object with
 the results. The L<DBD::SQLite> statement handle will be automatically reused
 when it is not active anymore, to increase the performance of future queries.
+You can also append a callback for API compatibility with L<Mojo::Pg>; the
+query is still executed in a blocking manner.
+
+  $db->query('insert into foo values (?, ?, ?)' => @values => sub {
+    my ($db, $err, $results) = @_;
+    ...
+  });
 
 =head1 BUGS
 

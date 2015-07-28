@@ -1,7 +1,10 @@
 use Mojo::Base -strict;
 
+BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
+
 use Test::More;
 use Mojo::SQLite;
+use Mojo::IOLoop;
 
 # Connected
 my $sql = Mojo::SQLite->new;
@@ -10,6 +13,67 @@ ok $sql->db->ping, 'connected';
 # Blocking select
 is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   {one => 1, two => 2, three => 3}, 'right structure';
+
+# Non-blocking select
+my ($fail, $result);
+my $db = $sql->db;
+$db->query(
+  'select 1 as one, 2 as two, 3 as three' => sub {
+    my ($db, $err, $results) = @_;
+    $fail   = $err;
+    $result = $results->hash;
+  }
+);
+ok !$fail, 'no error';
+is_deeply $result, {one => 1, two => 2, three => 3}, 'right structure';
+
+# Concurrent non-blocking selects
+($fail, $result) = ();
+Mojo::IOLoop->delay(
+  sub {
+    my $delay = shift;
+    $sql->db->query('select 1 as one' => $delay->begin);
+    $sql->db->query('select 2 as two' => $delay->begin);
+    $sql->db->query('select 2 as two' => $delay->begin);
+  },
+  sub {
+    my ($delay, $err_one, $one, $err_two, $two, $err_again, $again) = @_;
+    $fail = $err_one || $err_two || $err_again;
+    $result
+      = [$one->hashes->first, $two->hashes->first, $again->hashes->first];
+  }
+)->wait;
+ok !$fail, 'no error';
+is_deeply $result, [{one => 1}, {two => 2}, {two => 2}], 'right structure';
+
+# Sequential non-blocking selects
+($fail, $result) = (undef, []);
+$db = $sql->db;
+Mojo::IOLoop->delay(
+  sub {
+    my $delay = shift;
+    $db->query('select 1 as one' => $delay->begin);
+  },
+  sub {
+    my ($delay, $err, $one) = @_;
+    $fail = $err;
+    push @$result, $one->hashes->first;
+    $db->query('select 2 as two' => $delay->begin);
+  },
+  sub {
+    my ($delay, $err, $two) = @_;
+    $fail ||= $err;
+    push @$result, $two->hashes->first;
+    $db->query('select 3 as three' => $delay->begin);
+  },
+  sub {
+    my ($delay, $err, $three) = @_;
+    $fail ||= $err;
+    push @$result, $three->hashes->first;
+  }
+)->wait;
+ok !$fail, 'no error';
+is_deeply $result, [{one => 1}, {two => 2}, {three => 3}], 'right structure';
 
 # Connection cache
 is $sql->max_connections, 5, 'right default';
@@ -28,7 +92,7 @@ $sql->db->disconnect;
 isnt $sql->db->dbh, $dbh, 'different database handles';
 
 # Statement cache
-my $db = $sql->db;
+$db = $sql->db;
 my $sth = $db->query('select 3 as three')->sth;
 is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
 isnt $db->query('select 4 as four')->sth, $sth, 'different statement handles';
@@ -67,5 +131,17 @@ $sql->unsubscribe('connection');
 # Blocking error
 eval { $sql->db->query('does_not_exist') };
 like $@, qr/does_not_exist/, 'right error';
+
+# Non-blocking error
+($fail, $result) = ();
+$db = $sql->db;
+$db->query(
+  'does_not_exist' => sub {
+    my ($db, $err, $results) = @_;
+    ($fail, $result) = ($err, $results);
+  }
+);
+like $fail, qr/does_not_exist/, 'right error';
+is $db->dbh->errstr, $fail, 'same error';
 
 done_testing();
