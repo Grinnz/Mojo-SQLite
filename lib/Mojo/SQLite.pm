@@ -79,6 +79,8 @@ sub _enqueue {
 
 Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
+=head1 SYNOPSIS
+
   use Mojo::SQLite;
 
   # Create a table
@@ -263,7 +265,7 @@ Construct a new L<Mojo::SQLite> object and parse connection string with
 L</"from_string"> if necessary.
 
   # Customize configuration further
-  my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:dbname=test.db?mode=memory');
+  my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:uri=file:test.db?mode=memory');
 
 =head1 REFERENCE
 
