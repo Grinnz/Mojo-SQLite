@@ -4,7 +4,7 @@ use Mojo::Base -base;
 use Mojo::Collection;
 use Mojo::Util 'tablify';
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 has 'sth';
 
