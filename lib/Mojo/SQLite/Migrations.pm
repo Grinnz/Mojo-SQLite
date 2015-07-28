@@ -69,8 +69,10 @@ sub migrate {
   }
 
   warn "-- Migrate ($active -> $target)\n$sql\n" if DEBUG;
-  $sql .= ';update mojo_migrations set version = ? where name = ?;';
-  $db->query($sql, $target, $self->name) and $tx->commit;
+  local $db->dbh->{sqlite_allow_multiple_statements} = 1;
+  $db->dbh->do($sql);
+  $db->query('update mojo_migrations set version = ? where name = ?',
+    $target, $self->name) and $tx->commit;
 
   return $self;
 }
@@ -80,19 +82,18 @@ sub _active {
 
   my $name = $self->name;
   my $results;
-  {
-    local $db->dbh->{RaiseError} = 0;
+  eval {
     my $sql = 'select version from mojo_migrations where name = ?';
     $results = $db->query($sql, $name);
   };
-  if ((my $next = $results->array) || !$create) { return $next->[0] || 0 }
+  if (($results and my $next = $results->array) || !$create) { return $next->[0] || 0 }
 
   $db->query(
     'create table if not exists mojo_migrations (
        name    text unique not null,
        version integer not null check (version >= 0)
      )'
-  ) if $results->sth->err;
+  ) if !$results or $results->sth->err;
   $db->query('insert into mojo_migrations values (?, ?)', $name, 0);
 
   return 0;

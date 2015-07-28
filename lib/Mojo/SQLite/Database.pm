@@ -85,8 +85,8 @@ L<DBD::SQLite> database handle used for all queries.
 
 =head2 sqlite
 
-  my $pg = $db->pg;
-  $db    = $db->pg(Mojo::SQLite->new);
+  my $sql = $db->sqlite;
+  $db     = $db->sqlite(Mojo::SQLite->new);
 
 L<Mojo::SQLite> object this database belongs to.
 

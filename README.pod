@@ -140,8 +140,8 @@ more easily.
 Options for database handles, defaults to activating C<AutoCommit>,
 C<AutoInactiveDestroy> as well as C<RaiseError> and deactivating C<PrintError>.
 Note that C<AutoCommit> and C<RaiseError> are considered mandatory, so
-deactivating them would be very dangerous. C<sqlite_unicode> is also set to
-maintain consistency in encoding.
+deactivating them would be very dangerous. L<DBD::SQLite> specific option
+C<sqlite_unicode> is also set by default.
 
 =head1 METHODS
 
