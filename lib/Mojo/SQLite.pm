@@ -68,6 +68,8 @@ sub _dequeue {
   my $self = shift;
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
   my $dbh = DBI->connect(map { $self->$_ } qw(dsn username password options));
+  $dbh->do('pragma journal_mode=WAL');
+  $dbh->do('pragma synchronous=NORMAL');
   $self->emit(connection => $dbh);
   return $dbh;
 }
@@ -169,7 +171,11 @@ C<mode=memory>) will create a temporary database, note that in-memory databases
 cannot be shared between connections, so subsequent calls to L</"db"> may
 return connections to completely different databases. For a temporary database
 that can be shared between connections and processes, pass a file path of
-C<:temp:> to store the database in a temporary file.
+C<:temp:> to store the database in a temporary file (this is the default).
+
+The "Write-Ahead Log" journal is enabled for all connections, allowing multiple
+connections to read and write concurrently to the same database file (but only
+one write at a time). See L<http://sqlite.org/wal.html> for more information.
 
 =head1 EVENTS
 
@@ -223,21 +229,8 @@ more easily.
 Options for database handles, defaults to activating C<AutoCommit>,
 C<AutoInactiveDestroy> as well as C<RaiseError> and deactivating C<PrintError>.
 Note that C<AutoCommit> and C<RaiseError> are considered mandatory, so
-deactivating them would be very dangerous.
-
-=head2 password
-
-  my $password = $sql->password;
-  $sql         = $sql->password('s3cret');
-
-Database password, ignored by SQLite.
-
-=head2 username
-
-  my $username = $sql->username;
-  $sql         = $sql->username('dbook');
-
-Database username, ignored by SQLite.
+deactivating them would be very dangerous. C<sqlite_unicode> is also set to
+maintain consistency in encoding.
 
 =head1 METHODS
 
@@ -269,11 +262,11 @@ Parse configuration from connection string.
   # Relative to current directory
   $sql->from_string('file:data.db');
 
-  # In-memory temporary database (single connection only)
-  my $db = $sql->from_string('file::memory:')->db;
-
   # Temporary file database
   $sql->from_string('file::temp:');
+
+  # In-memory temporary database (single connection only)
+  my $db = $sql->from_string('file::memory:')->db;
 
   # Additional options
   $sql->from_string('file:data.db?PrintError=1&sqlite_allow_multiple_statements=1');
