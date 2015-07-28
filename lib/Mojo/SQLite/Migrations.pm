@@ -89,9 +89,9 @@ sub _active {
       $results = $db->query($query, $name);
     };
   }
-  if (($results and my $next = $results->array) || !$create) {
-    return 0 unless $results;
-    return $next->[0] || 0;
+  my $next;
+  if (($results and $next = $results->array) || !$create) {
+    return ($next || [])->[0] || 0;
   }
 
   $db->query(
