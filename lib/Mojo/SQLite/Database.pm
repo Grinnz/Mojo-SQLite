@@ -52,9 +52,9 @@ sub query {
   {
     local $@;
     eval {
+      $sth = $self->dbh->prepare_cached($query, undef, 3);
       # If RaiseError has been disabled, we might not get a $sth
-      $sth = $self->dbh->prepare_cached($query, undef, 3) // return 1;
-      $sth->execute(@_);
+      $sth->execute(@_) if defined $sth;
       1;
     } or $errored = 1;
     $error = $@ if $errored;
