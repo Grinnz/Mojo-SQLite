@@ -3,9 +3,9 @@ use Mojo::Base -base;
 
 use Carp 'croak';
 use DBD::SQLite;
+use List::Util 'any';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
-use List::Util 'any';
 use Scalar::Util 'weaken';
 
 our $VERSION = '0.001';

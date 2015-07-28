@@ -78,14 +78,14 @@ been forked, this allows multiple processes to share the same L<Mojo::SQLite>
 object safely.
 
 While passing a file path of C<:memory:> (or a custom L</"dsn"> with
-C<mode=memory>) will create a temporary database, note that in-memory databases
-cannot be shared between connections, so subsequent calls to L</"db"> may
-return connections to completely different databases. For a temporary database
-that can be shared between connections and processes, pass a file path of
-C<:temp:> to store the database in a temporary file (this is the default).
+C<mode=memory>) will create a temporary database, in-memory databases cannot be
+shared between connections, so subsequent calls to L</"db"> may return
+connections to completely different databases. For a temporary database that
+can be shared between connections and processes, pass a file path of C<:temp:>
+to store the database in a temporary file (this is the default).
 
 The "Write-Ahead Log" journal is enabled for all connections, allowing multiple
-connections to read and write concurrently to the same database file (but only
+processes to read and write concurrently to the same database file (but only
 one write at a time). See L<http://sqlite.org/wal.html> for more information.
 
 =head1 EVENTS

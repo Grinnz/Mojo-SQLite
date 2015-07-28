@@ -56,21 +56,21 @@ sub migrate {
   return $self if (my $active = $self->_active($db, 1)) == $target;
 
   # Up
-  my $sql;
+  my $query;
   if ($active < $target) {
     my @up = grep { $_ <= $target && $_ > $active } keys %$up;
-    $sql = join '', @$up{sort { $a <=> $b } @up};
+    $query = join '', @$up{sort { $a <=> $b } @up};
   }
 
   # Down
   else {
     my @down = grep { $_ > $target && $_ <= $active } keys %$down;
-    $sql = join '', @$down{reverse sort { $a <=> $b } @down};
+    $query = join '', @$down{reverse sort { $a <=> $b } @down};
   }
 
-  warn "-- Migrate ($active -> $target)\n$sql\n" if DEBUG;
+  warn "-- Migrate ($active -> $target)\n$query\n" if DEBUG;
   local $db->dbh->{sqlite_allow_multiple_statements} = 1;
-  $db->dbh->do($sql);
+  $db->dbh->do($query);
   $db->query('update mojo_migrations set version = ? where name = ?',
     $target, $self->name) and $tx->commit;
 
@@ -83,8 +83,8 @@ sub _active {
   my $name = $self->name;
   my $results;
   eval {
-    my $sql = 'select version from mojo_migrations where name = ?';
-    $results = $db->query($sql, $name);
+    my $query = 'select version from mojo_migrations where name = ?';
+    $results = $db->query($query, $name);
   };
   if (($results and my $next = $results->array) || !$create) { return $next->[0] || 0 }
 
