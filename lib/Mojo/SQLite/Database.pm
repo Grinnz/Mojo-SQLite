@@ -52,7 +52,8 @@ sub query {
   {
     local $@;
     eval {
-      $sth = $self->dbh->prepare_cached($query, undef, 3);
+      # If RaiseError has been disabled, we might not get a $sth
+      $sth = $self->dbh->prepare_cached($query, undef, 3) // return 1;
       $sth->execute(@_);
       1;
     } or $errored = 1;
@@ -62,6 +63,9 @@ sub query {
   if ($errored) {
     die $error unless $cb;
     $error = $self->dbh->errstr;
+  } else {
+    # only possible with RaiseError disabled and error in prepare
+    return undef unless defined $sth;
   }
 
   my $results = Mojo::SQLite::Results->new(sth => $sth);

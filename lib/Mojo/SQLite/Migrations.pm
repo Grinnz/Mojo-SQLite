@@ -83,14 +83,12 @@ sub _active {
   my $name = $self->name;
   my $results;
   {
-    local $@;
-    eval {
-      my $query = 'select version from mojo_migrations where name = ?';
-      $results = $db->query($query, $name);
-    };
+    local $db->dbh->{RaiseError} = 0;
+    my $query = 'select version from mojo_migrations where name = ?';
+    $results = $db->query($query, $name);
   }
   my $next = $results ? $results->array : undef;
-  if ($next || !$create) { return ($next && $next->[0]) ? $next->[0] : 0 }
+  if ($next || !$create) { return $next->[0] || 0 }
 
   $db->query(
     'create table if not exists mojo_migrations (
