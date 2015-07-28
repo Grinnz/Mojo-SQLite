@@ -9,7 +9,7 @@ use FindBin;
 use Mojo::SQLite;
 
 # Clean up before start
-my $sql = Mojo::SQLite->new('file::temp:');
+my $sql = Mojo::SQLite->new;
 $sql->db->query('drop table if exists mojo_migrations');
 
 # Defaults

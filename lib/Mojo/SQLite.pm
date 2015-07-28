@@ -11,7 +11,10 @@ use Scalar::Util 'weaken';
 
 our $VERSION = '0.001';
 
-has dsn             => 'dbi:SQLite:uri=file::memory:';
+has dsn => sub {
+  my $uri = Mojo::URL->new->scheme('file')->path(shift->_tempfile);
+  return "dbi:SQLite:uri=$uri";
+};
 has max_connections => 5;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
@@ -49,10 +52,7 @@ sub from_string {
 
   # Database file
   my $uri = $url->clone->query('')->fragment(undef)->userinfo(undef)->port(undef);
-  if ($uri->path eq ':temp:') {
-    $self->{tempfile} = File::Temp->new(EXLOCK => 0);
-    $uri->path($self->{tempfile}->filename);
-  }
+  $uri->path($self->_tempfile) if $uri->path eq ':temp:';
   my $dsn = "dbi:SQLite:uri=$uri";
 
   # Options
@@ -78,6 +78,12 @@ sub _enqueue {
   push @$queue, $dbh if $dbh->{Active};
   shift @$queue while @$queue > $self->max_connections;
 }
+
+sub _tempfile {
+  my $self = shift;
+  $self->{tempfile} = File::Temp->new(EXLOCK => 0);
+  return $self->{tempfile}->filename;
+};
 
 1;
 
@@ -158,6 +164,13 @@ All cached database handles will be reset automatically if a new process has
 been forked, this allows multiple processes to share the same L<Mojo::SQLite>
 object safely.
 
+While passing a file path of C<:memory:> (or a custom L</"dsn"> with
+C<mode=memory>) will create a temporary database, note that in-memory databases
+cannot be shared between connections, so subsequent calls to L</"db"> may
+return connections to completely different databases. For a temporary database
+that can be shared between connections and processes, pass a file path of
+C<:temp:> to store the database in a temporary file.
+
 =head1 EVENTS
 
 L<Mojo::SQLite> inherits all events from L<Mojo::EventEmitter> and can emit the
@@ -181,7 +194,7 @@ L<Mojo::SQLite> implements the following attributes.
   my $dsn = $sql->dsn;
   $sql    = $sql->dsn('dbi:SQLite:uri=file:foo.db');
 
-Data source name, defaults to C<dbi:SQLite:uri=file::memory:>.
+Data source name, defaults to a temporary file.
 
 =head2 max_connections
 
@@ -189,7 +202,7 @@ Data source name, defaults to C<dbi:SQLite:uri=file::memory:>.
   $sql    = $sql->max_connections(3);
 
 Maximum number of idle database handles to cache for future use, defaults to
-C<1>.
+C<5>.
 
 =head2 migrations
 
@@ -256,10 +269,10 @@ Parse configuration from connection string.
   # Relative to current directory
   $sql->from_string('file:data.db');
 
-  # In-memory temporary database (does not persist between connections)
-  $sql->from_string('file::memory:');
+  # In-memory temporary database (single connection only)
+  my $db = $sql->from_string('file::memory:')->db;
 
-  # Temporary file database (persists between connections)
+  # Temporary file database
   $sql->from_string('file::temp:');
 
   # Additional options

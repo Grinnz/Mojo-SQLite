@@ -1,12 +1,9 @@
 use Mojo::Base -strict;
 
-BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
-
 use Test::More;
-
 use Mojo::SQLite;
 
-my $sql = Mojo::SQLite->new('file::temp:');
+my $sql = Mojo::SQLite->new;
 my $db = $sql->db;
 $db->query(
   'create table if not exists results_test (
