@@ -3,6 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
 use DBI;
+use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
 use Mojo::URL;
@@ -11,7 +12,7 @@ use Scalar::Util 'weaken';
 our $VERSION = '0.001';
 
 has dsn             => 'dbi:SQLite:uri=file::memory:';
-has max_connections => 1;
+has max_connections => 5;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
   weaken $migrations->{sqlite};
@@ -23,7 +24,8 @@ has options => sub {
     AutoCommit          => 1,
     AutoInactiveDestroy => 1,
     PrintError          => 0,
-    RaiseError          => 1
+    RaiseError          => 1,
+    sqlite_unicode      => 1,
   };
 };
 
@@ -47,6 +49,10 @@ sub from_string {
 
   # Database file
   my $uri = $url->clone->query('')->fragment(undef)->userinfo(undef)->port(undef);
+  if ($uri->path eq ':temp:') {
+    $self->{tempfile} = File::Temp->new(EXLOCK => 0);
+    $uri->path($self->{tempfile}->filename);
+  }
   my $dsn = "dbi:SQLite:uri=$uri";
 
   # Options
@@ -250,8 +256,11 @@ Parse configuration from connection string.
   # Relative to current directory
   $sql->from_string('file:data.db');
 
-  # In-memory temporary database
+  # In-memory temporary database (does not persist between connections)
   $sql->from_string('file::memory:');
+
+  # Temporary file database (persists between connections)
+  $sql->from_string('file::temp:');
 
   # Additional options
   $sql->from_string('file:data.db?PrintError=1&sqlite_allow_multiple_statements=1');
@@ -285,8 +294,6 @@ This is the class hierarchy of the L<Mojo::SQLite> distribution.
 
 =back
 
-=head1 DESCRIPTION
-
 =head1 BUGS
 
 Report any issues on the public bugtracker.
@@ -304,4 +311,4 @@ the terms of the Artistic License version 2.0.
 
 =head1 SEE ALSO
 
-L<Mojolicious>
+L<Mojolicious>, L<DBD::SQLite>

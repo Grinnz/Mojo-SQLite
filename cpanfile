@@ -1,5 +1,10 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
 requires 'DBD::SQLite' => '1.48';
+requires 'File::Temp';
+requires 'List::Util'  => '1.33';
 requires 'Mojolicious' => '6.14';
 requires 'Scalar::Util';
+test_requires 'Test::More' => '0.88';
+author_requires 'Test::Pod'           => '1.14';
+author_requires 'Test::Pod::Coverage' => '1.04';
