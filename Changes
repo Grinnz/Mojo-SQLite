@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.003     2015-07-28 12:56:30 EDT
+  - Minor migrations fixes
+
 0.002     2015-07-28 12:39:12 EDT
   - Allow passing callback to query()
 
