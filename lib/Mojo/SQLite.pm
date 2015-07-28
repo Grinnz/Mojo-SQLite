@@ -153,9 +153,10 @@ gracefully by holding on to them only for short amounts of time.
 
   app->start;
 
-All I/O and queries are performed synchronously. However, connecting in WAL
-mode means that multiple processes can access the same SQLite database
-concurrently, though only one can write at a time.
+All I/O and queries are performed synchronously. However, the "Write-Ahead Log"
+journal is enabled for all connections, allowing multiple processes to read and
+write concurrently to the same database file (but only one can write at a
+time). See L<http://sqlite.org/wal.html> for more information.
 
   # Performed concurrently
   my $pid = fork || die $!;
@@ -172,10 +173,6 @@ shared between connections, so subsequent calls to L</"db"> may return
 connections to completely different databases. For a temporary database that
 can be shared between connections and processes, pass a file path of C<:temp:>
 to store the database in a temporary file (this is the default).
-
-The "Write-Ahead Log" journal is enabled for all connections, allowing multiple
-processes to read and write concurrently to the same database file (but only
-one write at a time). See L<http://sqlite.org/wal.html> for more information.
 
 =head1 EVENTS
 
