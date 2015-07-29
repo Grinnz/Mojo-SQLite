@@ -48,10 +48,11 @@ sub from_string {
   return $self unless $str;
   my $url = Mojo::URL->new($str);
   croak qq{Invalid SQLite connection string "$str"}
-    unless $url->protocol eq 'file' and ($url->host // '') =~ /^(localhost)?\z/;
+    unless ($url->protocol eq '' or $url->protocol eq 'file')
+    and (($url->host // '') eq '' or ($url->host // '') eq 'localhost');
 
   # Database file
-  my $uri = $url->clone->query('')->fragment(undef)->userinfo(undef)->port(undef);
+  my $uri = $url->clone->scheme('file')->userinfo(undef)->port(undef)->query('')->fragment(undef);
   $uri->path($self->_tempfile) if $uri->path eq ':temp:';
   my $dsn = "dbi:SQLite:uri=$uri";
 
@@ -98,7 +99,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   use Mojo::SQLite;
 
   # Create a table
-  my $sql = Mojo::SQLite->new('file:test.db');
+  my $sql = Mojo::SQLite->new('test.db');
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -251,27 +252,34 @@ gracefully by holding on to it only for short amounts of time.
 
   $sql = $sql->from_string('file:test.db');
 
-Parse configuration from connection string.
+Parse configuration from connection string. The optional scheme must be
+C<file>, and the hostname must be C<localhost> if specified.
 
   # Absolute filename
   $sql->from_string('file:///home/fred/data.db');
+  $sql->from_string('file://localhost/home/fred/data.db');
+  $sql->from_string('file:/home/fred/data.db');
+  $sql->from_string('///home/fred/data.db');
+  $sql->from_string('//localhost/home/fred/data.db');
+  $sql->from_string('/home/fred/data.db');
 
   # Relative to current directory
   $sql->from_string('file:data.db');
+  $sql->from_string('data.db');
 
-  # Temporary file database
-  $sql->from_string('file::temp:');
+  # Temporary file database (default)
+  $sql->from_string(':temp:');
 
   # In-memory temporary database (single connection only)
-  my $db = $sql->from_string('file::memory:')->db;
+  my $db = $sql->from_string(':memory:')->db;
 
   # Additional options
-  $sql->from_string('file:data.db?PrintError=1&sqlite_allow_multiple_statements=1');
+  $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
 
 =head2 new
 
   my $sql = Mojo::SQLite->new;
-  my $sql = Mojo::SQLite->new('file:test.db');
+  my $sql = Mojo::SQLite->new('test.db');
 
 Construct a new L<Mojo::SQLite> object and parse connection string with
 L</"from_string"> if necessary.

@@ -1,5 +1,6 @@
 {{$NEXT}}
   - Fix results rows() method to return statement handle rows
+  - Make scheme optional for from_string() (and thus the constructor)
 
 0.005     2015-07-28 21:59:23 EDT
   - Allow specifying bind types for query parameters

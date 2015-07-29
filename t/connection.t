@@ -18,7 +18,7 @@ my $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Minimal connection string with file
-$sql = Mojo::SQLite->new('file:test.db');
+$sql = Mojo::SQLite->new('test.db');
 is $sql->dsn, 'dbi:SQLite:uri=file:test.db', 'right data source';
 $options = {
   AutoCommit          => 1,
@@ -30,7 +30,7 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Minimal connection string with in-memory database and option
-$sql = Mojo::SQLite->new('file::memory:?PrintError=1');
+$sql = Mojo::SQLite->new(':memory:?PrintError=1');
 is $sql->dsn, 'dbi:SQLite:uri=file::memory:', 'right data source';
 $options = {
   AutoCommit          => 1,
