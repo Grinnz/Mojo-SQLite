@@ -3,7 +3,6 @@ requires 'Carp';
 requires 'DBI'         => '1.633';
 requires 'DBD::SQLite' => '1.48';
 requires 'File::Temp';
-requires 'List::Util'  => '1.33';
 requires 'Mojolicious' => '6.14';
 requires 'Scalar::Util';
 test_requires 'Test::More' => '0.88';

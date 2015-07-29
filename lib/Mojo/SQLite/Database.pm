@@ -3,7 +3,6 @@ use Mojo::Base -base;
 
 use Carp 'croak';
 use DBD::SQLite;
-use List::Util 'any';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Scalar::Util 'weaken';
@@ -22,12 +21,13 @@ sub DESTROY {
   $sql->_enqueue($dbh);
 }
 
+my %behaviors = map { ($_ => 1) } qw(deferred immediate exclusive);
+
 sub begin {
   my $self = shift;
   if (@_) {
     my $behavior = shift;
-    croak qq{Invalid transaction behavior $behavior}
-      unless any { lc $behavior eq $_ } qw(deferred immediate exclusive);
+    croak qq{Invalid transaction behavior $behavior} unless exists $behaviors{lc $behavior};
     $self->dbh->do("begin $behavior transaction");
   } else {
     $self->dbh->begin_work;
