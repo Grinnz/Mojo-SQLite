@@ -14,7 +14,9 @@ $db->query(
 $db->query('insert into results_test (name) values (?)', $_) for qw(foo bar);
 
 # Result methods
-is_deeply $db->query('select * from results_test')->rows, 2, 'two rows';
+my $results = $db->query('select * from results_test');
+$results->arrays;
+is_deeply $results->rows, 2, 'two rows';
 is_deeply $db->query('select * from results_test')->columns, ['id', 'name'],
   'right structure';
 is_deeply $db->query('select * from results_test')->array, [1, 'foo'],

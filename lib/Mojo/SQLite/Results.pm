@@ -20,7 +20,7 @@ sub hash { ($_[0]->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{$_[0]->sth->fetchall_arrayref({})}) }
 
-sub rows { scalar @{shift->arrays} }
+sub rows { $_[0]->sth->rows }
 
 sub text { tablify shift->arrays }
 
@@ -112,7 +112,8 @@ containing hash references.
 
   my $num = $results->rows;
 
-Number of rows.
+Number of rows. Note that for C<SELECT> statements, this count will not be
+accurate until all rows have been fetched.
 
 =head2 text
 
