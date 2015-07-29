@@ -10,13 +10,13 @@ has 'sth';
 
 sub DESTROY { $_[0]{sth}->finish if $_[0]{sth} }
 
-sub array { $_[0]->sth->fetchrow_arrayref }
+sub array { ($_[0]->sth->fetchrow_arrayref)[0] }
 
 sub arrays { _collect(@{$_[0]->sth->fetchall_arrayref}) }
 
 sub columns { shift->sth->{NAME} }
 
-sub hash { $_[0]->sth->fetchrow_hashref }
+sub hash { ($_[0]->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{$_[0]->sth->fetchall_arrayref({})}) }
 
