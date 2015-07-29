@@ -5,6 +5,8 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use DBI ':sql_types';
+use Mojo::Util 'encode';
 
 # Connected
 my $sql = Mojo::SQLite->new;
@@ -107,6 +109,19 @@ is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
 isnt $db->query('select 5 as five')->sth, $sth, 'different statement handles';
 isnt $db->query('select 6 as six')->sth,  $sth, 'different statement handles';
 is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
+
+# Bind types
+$db = $sql->db;
+is_deeply $db->query('select ? as foo', {type => SQL_VARCHAR, value => 'bar'})
+  ->hash, {foo => 'bar'}, 'right structure';
+is_deeply $db->query('select ? as foo', {type => SQL_INTEGER, value => 5})
+  ->hash, {foo => 5}, 'right structure';
+is_deeply $db->query('select ? as foo', {type => SQL_REAL, value => 2.5})
+  ->hash, {foo => 2.5}, 'right structure';
+is_deeply $db->query('select ? as foo', {type => SQL_VARCHAR, value => '☃♥'})
+  ->hash, {foo => '☃♥'}, 'right structure';
+is_deeply $db->query('select ? as foo', {type => SQL_BLOB, value => encode 'UTF-8', '☃♥'})
+  ->hash, {foo => encode 'UTF-8', '☃♥'}, 'right structure';
 
 # Fork-safety
 $dbh = $sql->db->dbh;

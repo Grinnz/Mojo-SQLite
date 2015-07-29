@@ -54,7 +54,7 @@ sub query {
     eval {
       $sth = $self->dbh->prepare_cached($query, undef, 3);
       # If RaiseError has been disabled, we might not get a $sth
-      $sth->execute(@_) if defined $sth;
+      do { _bind_params($sth, @_); $sth->execute } if defined $sth;
       1;
     } or $errored = 1;
     $error = $@ if $errored;
@@ -71,6 +71,20 @@ sub query {
   my $results = Mojo::SQLite::Results->new(sth => $sth);
   $self->$cb($error, $results) if $cb;
   return $cb ? $self : $results;
+}
+
+sub _bind_params {
+  my $sth = shift;
+  return $sth unless @_;
+  foreach my $i (0..$#_) {
+    my $param = $_[$i];
+    if (ref $param eq 'HASH' && exists $param->{type} && exists $param->{value}) {
+      $sth->bind_param($i+1, $param->{value}, $param->{type});
+    } else {
+      $sth->bind_param($i+1, $param);
+    }
+  }
+  return $sth;
 }
 
 1;
@@ -154,12 +168,16 @@ Check database connection.
 
   my $results = $db->query('select * from foo');
   my $results = $db->query('insert into foo values (?, ?, ?)', @values);
+  my $results = $db->query('select ? as foo', {type => SQL_BLOB, value => slurp img.jpg});
 
 Execute a blocking statement and return a L<Mojo::SQLite::Results> object with
 the results. The L<DBD::SQLite> statement handle will be automatically reused
 when it is not active anymore, to increase the performance of future queries.
-You can also append a callback for API compatibility with L<Mojo::Pg>; the
-query is still executed in a blocking manner.
+Pass a hash reference containing C<type> and C<value> elements to specify the
+bind type of the parameter, using types from L<DBI/"DBI Constants">; see
+L<DBD::SQLite/"Blobs"> and the subsequent section for more information. You can
+also append a callback for API compatibility with L<Mojo::Pg>; the query is
+still executed in a blocking manner.
 
   $db->query('insert into foo values (?, ?, ?)' => @values => sub {
     my ($db, $err, $results) = @_;
