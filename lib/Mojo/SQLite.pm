@@ -9,7 +9,7 @@ use Mojo::SQLite::Migrations;
 use Mojo::URL;
 use Scalar::Util 'weaken';
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 has dsn => sub {
   my $uri = Mojo::URL->new->scheme('file')->path(shift->_tempfile);
