@@ -12,6 +12,7 @@ $db->query(
    )'
 );
 $db->query('insert into results_test (name) values (?)', $_) for qw(foo bar);
+is $db->query('update results_test set name=name')->rows, 2, 'two rows affected';
 
 # Result methods
 is_deeply $db->query('select * from results_test')->columns, ['id', 'name'],
