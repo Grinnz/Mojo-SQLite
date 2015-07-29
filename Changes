@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Allow specifying bind types for query parameters
 
 0.004     2015-07-28 20:48:04 EDT
   - Depend on DBI explicitly

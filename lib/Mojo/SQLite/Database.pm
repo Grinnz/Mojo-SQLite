@@ -168,7 +168,7 @@ Check database connection.
 
   my $results = $db->query('select * from foo');
   my $results = $db->query('insert into foo values (?, ?, ?)', @values);
-  my $results = $db->query('select ? as foo', {type => SQL_BLOB, value => slurp img.jpg});
+  my $results = $db->query('select ? as img', {type => SQL_BLOB, value => slurp 'img.jpg'});
 
 Execute a blocking statement and return a L<Mojo::SQLite::Results> object with
 the results. The L<DBD::SQLite> statement handle will be automatically reused
