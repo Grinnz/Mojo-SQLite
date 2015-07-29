@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.004     2015-07-28 20:48:04 EDT
   - Depend on DBI explicitly
   - Remove List::Util dependency
   - Add blog example

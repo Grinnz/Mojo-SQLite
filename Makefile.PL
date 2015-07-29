@@ -20,15 +20,15 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Carp" => 0,
     "DBD::SQLite" => "1.48",
+    "DBI" => "1.633",
     "File::Temp" => 0,
-    "List::Util" => "1.33",
     "Mojolicious" => "6.14",
     "Scalar::Util" => 0
   },
   "TEST_REQUIRES" => {
     "Test::More" => "0.88"
   },
-  "VERSION" => "0.003",
+  "VERSION" => "0.004",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -38,9 +38,9 @@ my %WriteMakefileArgs = (
 my %FallbackPrereqs = (
   "Carp" => 0,
   "DBD::SQLite" => "1.48",
+  "DBI" => "1.633",
   "ExtUtils::MakeMaker" => 0,
   "File::Temp" => 0,
-  "List::Util" => "1.33",
   "Mojolicious" => "6.14",
   "Scalar::Util" => 0,
   "Test::More" => "0.88"
