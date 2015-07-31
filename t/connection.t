@@ -43,7 +43,7 @@ is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
 $sql = Mojo::SQLite->new('file:///tmp/sqlite.db?PrintError=1&RaiseError=0');
-is $sql->dsn, 'dbi:SQLite:uri=file:///tmp/sqlite.db', 'right data source';
+is $sql->dsn, 'dbi:SQLite:uri=file:/tmp/sqlite.db', 'right data source';
 $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,

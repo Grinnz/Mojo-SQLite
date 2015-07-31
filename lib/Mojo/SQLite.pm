@@ -47,18 +47,21 @@ sub from_string {
   # Protocol
   return $self unless $str;
   my $url = Mojo::URL->new($str);
+  my $protocol = $url->protocol;
+  my $host = $url->host // '';
+  my $path = $url->path;
+  my $options = $url->query->to_hash;
   croak qq{Invalid SQLite connection string "$str"}
-    unless ($url->protocol eq '' or $url->protocol eq 'file')
-    and (($url->host // '') eq '' or ($url->host // '') eq 'localhost');
+    unless ($protocol eq '' or $protocol eq 'file')
+    and ($host eq '' or $host eq 'localhost');
 
   # Database file
-  my $uri = $url->clone->scheme('file')->userinfo(undef)->port(undef)->query('')->fragment(undef);
-  $uri->path($self->_tempfile) if $uri->path eq ':temp:';
+  $path = $self->_tempfile if $path eq ':temp:';
+  my $uri = Mojo::URL->new->scheme('file')->path($path);
   my $dsn = "dbi:SQLite:uri=$uri";
 
   # Options
-  my $hash = $url->query->to_hash;
-  @{$self->options}{keys %$hash} = values %$hash;
+  @{$self->options}{keys %$options} = values %$options;
 
   return $self->dsn($dsn);
 }
@@ -99,7 +102,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   use Mojo::SQLite;
 
   # Create a table
-  my $sql = Mojo::SQLite->new('test.db');
+  my $sql = Mojo::SQLite->new(Mojo::URL->new->scheme('file')->path($filename));
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -198,7 +201,8 @@ L<Mojo::SQLite> implements the following attributes.
   my $dsn = $sql->dsn;
   $sql    = $sql->dsn('dbi:SQLite:uri=file:foo.db');
 
-Data source name, defaults to a temporary file.
+Data source name, defaults to a C<dbi:SQLite:uri=> followed by a URI to a
+temporary file.
 
 =head2 max_connections
 
@@ -253,7 +257,9 @@ gracefully by holding on to it only for short amounts of time.
   $sql = $sql->from_string('file:test.db');
 
 Parse configuration from connection string. The optional scheme must be
-C<file>, and the hostname must be C<localhost> if specified.
+C<file>, and the hostname must be C<localhost> if specified. Connection strings
+are parsed as URIs, so you should construct them using a module like
+L<Mojo::URL> or L<URI::file>.
 
   # Absolute filename
   $sql->from_string('file:///home/fred/data.db');
@@ -267,6 +273,10 @@ C<file>, and the hostname must be C<localhost> if specified.
   $sql->from_string('file:data.db');
   $sql->from_string('data.db');
 
+  # Filenames may contain special characters
+  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename));
+  $sql->from_string(URI::file->new($filename));
+
   # Temporary file database (default)
   $sql->from_string(':temp:');
 
@@ -275,6 +285,7 @@ C<file>, and the hostname must be C<localhost> if specified.
 
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
+  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename)->query(PrintError => 1));
 
 =head2 new
 
