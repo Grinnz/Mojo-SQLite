@@ -2,6 +2,7 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Mojo::SQLite;
+use Mojo::URL;
 
 # Defaults
 my $sql = Mojo::SQLite->new;
@@ -42,7 +43,9 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
-$sql = Mojo::SQLite->new('file:///tmp/sqlite.db?PrintError=1&RaiseError=0');
+my $url = Mojo::URL->new->scheme('file')->path('/tmp/sqlite.db')
+  ->query(PrintError => 1, RaiseError => 0);
+$sql = Mojo::SQLite->new($url);
 is $sql->dsn, 'dbi:SQLite:uri=file:/tmp/sqlite.db', 'right data source';
 $options = {
   AutoCommit          => 1,
@@ -54,7 +57,7 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with lots of zeros
-$sql = Mojo::SQLite->new('file:0?RaiseError=0');
+$sql = Mojo::SQLite->new('0?RaiseError=0');
 is $sql->dsn, 'dbi:SQLite:uri=file:0', 'right data source';
 $options = {
   AutoCommit          => 1,
