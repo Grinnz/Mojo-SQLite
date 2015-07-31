@@ -100,6 +100,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 =head1 SYNOPSIS
 
   use Mojo::SQLite;
+  use Mojo::URL;
 
   # Create a table
   my $sql = Mojo::SQLite->new(Mojo::URL->new->scheme('file')->path($filename));
@@ -145,9 +146,10 @@ gracefully by holding on to them only for short amounts of time.
 
   use Mojolicious::Lite;
   use Mojo::SQLite;
+  use Mojo::URL;
 
   helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new('file:///home/fred/data.db') };
+    sub { state $sql = Mojo::SQLite->new(Mojo::URL->new->path(shift->config('sqlite_filename')) };
 
   get '/' => sub {
     my $c  = shift;
@@ -256,10 +258,10 @@ gracefully by holding on to it only for short amounts of time.
 
   $sql = $sql->from_string('file:test.db');
 
-Parse configuration from connection string. The optional scheme must be
-C<file>, and the hostname must be C<localhost> if specified. Connection strings
-are parsed as URIs, so you should construct them using a module like
-L<Mojo::URL> or L<URI::file>.
+Parse configuration from connection string. Connection strings are parsed as
+URIs, so you should construct them using a module like L<Mojo::URL> or
+L<URI::file>. The scheme and hostname are optional, but if specified must be
+C<file> and C<localhost> respectively.
 
   # Absolute filename
   $sql->from_string('file:///home/fred/data.db');
@@ -273,7 +275,7 @@ L<Mojo::URL> or L<URI::file>.
   $sql->from_string('file:data.db');
   $sql->from_string('data.db');
 
-  # Filenames may contain special characters
+  # Connection string must be a valid URI
   $sql->from_string(Mojo::URL->new->scheme('file')->path($filename));
   $sql->from_string(URI::file->new($filename));
 

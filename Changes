@@ -1,5 +1,5 @@
 {{$NEXT}}
-  - Clarify documentation regarding connection strings
+  - Clarify use of URLs in connection strings
 
 0.006     2015-07-28 23:54:45 EDT
   - Fix results rows() method to return statement handle rows
