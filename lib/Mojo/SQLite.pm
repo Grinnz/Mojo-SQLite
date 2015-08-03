@@ -6,13 +6,15 @@ use DBI;
 use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
-use Mojo::URL;
 use Scalar::Util 'weaken';
+use URI;
+use URI::QueryParam;
+use URI::file;
 
 our $VERSION = '0.008';
 
 has dsn => sub {
-  my $uri = Mojo::URL->new->scheme('file')->path(shift->_tempfile);
+  my $uri = _uri_from_path(shift->_tempfile_path);
   return "dbi:SQLite:uri=$uri";
 };
 has max_connections => 5;
@@ -44,23 +46,23 @@ sub db {
 sub from_string {
   my ($self, $str) = @_;
 
-  # Protocol
+  # Parse URI
   return $self unless $str;
-  my $url = Mojo::URL->new($str);
-  my $protocol = $url->protocol;
-  my $host = $url->host // '';
-  my $path = $url->path;
-  my $options = $url->query->to_hash;
+  my $uri = URI->new($str);
+  my $scheme = $uri->scheme // '';
+  my $host = $scheme eq 'file' ? ($uri->host // '') : '';
   croak qq{Invalid SQLite connection string "$str"}
-    unless ($protocol eq '' or $protocol eq 'file')
+    unless ($scheme eq '' or $scheme eq 'file')
     and ($host eq '' or $host eq 'localhost');
-
+  
   # Database file
-  $path = $self->_tempfile if $path eq ':temp:';
-  my $uri = Mojo::URL->new->scheme('file')->path($path);
-  my $dsn = "dbi:SQLite:uri=$uri";
+  my $path = $uri->path;
+  $path = $self->_tempfile_path if $path eq ':temp:';
+  my $new_uri = _uri_from_path($path);
+  my $dsn = "dbi:SQLite:uri=$new_uri";
 
   # Options
+  my $options = $uri->query_form_hash;
   @{$self->options}{keys %$options} = values %$options;
 
   return $self->dsn($dsn);
@@ -85,11 +87,19 @@ sub _enqueue {
   shift @$queue while @$queue > $self->max_connections;
 }
 
-sub _tempfile {
+sub _tempfile_path {
   my $self = shift;
   $self->{tempfile} = File::Temp->new(EXLOCK => 0);
-  return $self->{tempfile}->filename;
+  return URI::file->new($self->{tempfile}->filename)->path;
 };
+
+sub _uri_from_path {
+  my $path = shift;
+  my $uri = URI->new;
+  $uri->scheme('file');
+  $uri->path($path);
+  return $uri;
+}
 
 1;
 
@@ -100,10 +110,10 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 =head1 SYNOPSIS
 
   use Mojo::SQLite;
-  use Mojo::URL;
+  use URI::file;
 
   # Create a table
-  my $sql = Mojo::SQLite->new(Mojo::URL->new->scheme('file')->path($filename));
+  my $sql = Mojo::SQLite->new(URI::file->new($filename));
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -146,10 +156,10 @@ gracefully by holding on to them only for short amounts of time.
 
   use Mojolicious::Lite;
   use Mojo::SQLite;
-  use Mojo::URL;
+  use URI::file;
 
   helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new(Mojo::URL->new->path(shift->config('sqlite_filename')) };
+    sub { state $sql = Mojo::SQLite->new(URI::file->new(shift->config('sqlite_filename')) };
 
   get '/' => sub {
     my $c  = shift;
@@ -284,7 +294,7 @@ will be parsed and applied to L</"options">.
   $sql->from_string('data.db');
 
   # Connection string must be a valid URI
-  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename));
+  $sql->from_string(Mojo::URL->new->path($unix_filename));
   $sql->from_string(URI::file->new($filename));
 
   # Temporary file database (default)
@@ -295,7 +305,12 @@ will be parsed and applied to L</"options">.
 
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
-  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename)->query(PrintError => 1));
+  
+  use URI::file;
+  use URI::QueryParam;
+  my $uri = URI::file->new($filename);
+  $uri->query_form_hash({PrintError => 1, sqlite_allow_multiple_statements => 1});
+  $sql->from_string($uri);
 
 =head2 new
 

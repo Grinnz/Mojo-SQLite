@@ -86,7 +86,7 @@ is_deeply $sql->db->query('select * from migration_test_two')->hash,
 is $sql->migrations->migrate(0)->active, 0, 'active version is 0';
 
 # Bad and concurrent migrations
-my $sql2 = Mojo::SQLite->new('file::temp:');
+my $sql2 = Mojo::SQLite->new;
 $sql2->migrations->name('migrations_test2')
   ->from_file(catfile($FindBin::Bin, 'migrations', 'test.sql'));
 is $sql2->migrations->latest, 4, 'latest version is 4';

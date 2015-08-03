@@ -2,7 +2,8 @@ use Mojo::Base -strict;
 
 use Test::More;
 use Mojo::SQLite;
-use Mojo::URL;
+use URI::file;
+use URI::QueryParam;
 
 # Defaults
 my $sql = Mojo::SQLite->new;
@@ -43,9 +44,9 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
-my $url = Mojo::URL->new->scheme('file')->path('/tmp/sqlite.db?#')
-  ->query(PrintError => 1, RaiseError => 0);
-$sql = Mojo::SQLite->new($url);
+my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix');
+$uri->query_form_hash({PrintError => 1, RaiseError => 0});
+$sql = Mojo::SQLite->new($uri);
 is $sql->dsn, 'dbi:SQLite:uri=file:/tmp/sqlite.db%3F%23', 'right data source';
 $options = {
   AutoCommit          => 1,

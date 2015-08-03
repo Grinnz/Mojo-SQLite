@@ -7,10 +7,10 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 =head1 SYNOPSIS
 
   use Mojo::SQLite;
-  use Mojo::URL;
+  use URI::file;
 
   # Create a table
-  my $sql = Mojo::SQLite->new(Mojo::URL->new->scheme('file')->path($filename));
+  my $sql = Mojo::SQLite->new(URI::file->new($filename));
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -53,10 +53,10 @@ gracefully by holding on to them only for short amounts of time.
 
   use Mojolicious::Lite;
   use Mojo::SQLite;
-  use Mojo::URL;
+  use URI::file;
 
   helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new(Mojo::URL->new->path(shift->config('sqlite_filename')) };
+    sub { state $sql = Mojo::SQLite->new(URI::file->new(shift->config('sqlite_filename')) };
 
   get '/' => sub {
     my $c  = shift;
@@ -191,7 +191,7 @@ will be parsed and applied to L</"options">.
   $sql->from_string('data.db');
 
   # Connection string must be a valid URI
-  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename));
+  $sql->from_string(Mojo::URL->new->path($unix_filename));
   $sql->from_string(URI::file->new($filename));
 
   # Temporary file database (default)
@@ -202,7 +202,12 @@ will be parsed and applied to L</"options">.
 
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
-  $sql->from_string(Mojo::URL->new->scheme('file')->path($filename)->query(PrintError => 1));
+  
+  use URI::file;
+  use URI::QueryParam;
+  my $uri = URI::file->new($filename);
+  $uri->query_form_hash({PrintError => 1, sqlite_allow_multiple_statements => 1});
+  $sql->from_string($uri);
 
 =head2 new
 
