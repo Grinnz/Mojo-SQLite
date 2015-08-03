@@ -80,6 +80,10 @@ All cached database handles will be reset automatically if a new process has
 been forked, this allows multiple processes to share the same L<Mojo::SQLite>
 object safely.
 
+Any database errors will throw an exception as C<RaiseError> is automatically
+enabled, so use C<eval> or L<Try::Tiny> to catch them. This makes transactions
+with L<Mojo::SQLite::Database/"begin"> easy.
+
 While passing a file path of C<:memory:> (or a custom L</"dsn"> with
 C<mode=memory>) will create a temporary database, in-memory databases cannot be
 shared between connections, so subsequent calls to L</"db"> may return
@@ -137,11 +141,13 @@ more easily.
   my $options = $sql->options;
   $sql        = $sql->options({AutoCommit => 1, RaiseError => 1});
 
-Options for database handles, defaults to activating C<AutoCommit>,
-C<AutoInactiveDestroy> as well as C<RaiseError> and deactivating C<PrintError>.
-Note that C<AutoCommit> and C<RaiseError> are considered mandatory, so
-deactivating them would be very dangerous. L<DBD::SQLite> specific option
-C<sqlite_unicode> is also set by default.
+Options for database handles, defaults to activating C<sqlite_unicode>,
+C<AutoCommit>, C<AutoInactiveDestroy> as well as C<RaiseError> and deactivating
+C<PrintError>. Note that C<AutoCommit> and C<RaiseError> are considered
+mandatory, so deactivating them would be very dangerous. See
+L<DBI/"ATTRIBUTES COMMON TO ALL HANDLES"> and
+L<DBD::SQLite/"DRIVER PRIVATE ATTRIBUTES"> for more information on available
+options.
 
 =head1 METHODS
 
@@ -167,8 +173,10 @@ gracefully by holding on to it only for short amounts of time.
 
 Parse configuration from connection string. Connection strings are parsed as
 URIs, so you should construct them using a module like L<Mojo::URL> or
-L<URI::file>. The scheme and hostname are optional, but if specified must be
-C<file> and C<localhost> respectively.
+L<URI::file>. L<URI::file> is recommended for portability on non-Unix-like
+systems. The scheme and hostname are optional, but if specified must be C<file>
+and C<localhost> respectively. If the connection string has a query string, it
+will be parsed and applied to L</"options">.
 
   # Absolute filename
   $sql->from_string('file:///home/fred/data.db');
@@ -199,12 +207,13 @@ C<file> and C<localhost> respectively.
 =head2 new
 
   my $sql = Mojo::SQLite->new;
-  my $sql = Mojo::SQLite->new('test.db');
+  my $sql = Mojo::SQLite->new('file:test.db');
 
 Construct a new L<Mojo::SQLite> object and parse connection string with
 L</"from_string"> if necessary.
 
   # Customize configuration further
+  my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:dbname=test.db');
   my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:uri=file:test.db?mode=memory');
 
 =head1 REFERENCE
