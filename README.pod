@@ -7,10 +7,9 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 =head1 SYNOPSIS
 
   use Mojo::SQLite;
-  use URI::file;
 
   # Create a table
-  my $sql = Mojo::SQLite->new(URI::file->new($filename));
+  my $sql = Mojo::SQLite->new->from_filename($filename);
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -53,10 +52,9 @@ gracefully by holding on to them only for short amounts of time.
 
   use Mojolicious::Lite;
   use Mojo::SQLite;
-  use URI::file;
 
   helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new(URI::file->new(shift->config('sqlite_filename')) };
+    sub { state $sql = Mojo::SQLite->new->from_filename(shift->config('sqlite_filename')) };
 
   get '/' => sub {
     my $c  = shift;
@@ -167,6 +165,29 @@ gracefully by holding on to it only for short amounts of time.
   say $sql->db->query('select * from accounts')
     ->hashes->reduce(sub { $a->{money} + $b->{money} });
 
+=head2 from_filename
+
+  $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db');
+
+Parse database filename directly. Unlike L</"from_string">, the filename is
+parsed as a local filename and not a URI, and L</"options"> must be specified
+separately.
+
+  # Absolute filename
+  $sql->from_filename('/home/fred/data.db');
+
+  # Relative to current directory
+  $sql->from_filename('data.db');
+
+  # Temporary file database (default)
+  $sql->from_filename(':temp:');
+
+  # In-memory temporary database (single connection only)
+  my $db = $sql->from_filename(':memory:')->db;
+
+  # Additional options
+  $sql->from_filename($filename)->options({PrintError => 1});
+
 =head2 from_string
 
   $sql = $sql->from_string('file:test.db');
@@ -220,6 +241,9 @@ L</"from_string"> if necessary.
   # Customize configuration further
   my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:dbname=test.db');
   my $sql = Mojo::SQLite->new->dsn('dbi:SQLite:uri=file:test.db?mode=memory');
+
+  # Pass filename directly
+  my $sql = Mojo::SQLite->new->from_filename($filename);
 
 =head1 REFERENCE
 

@@ -1,5 +1,6 @@
 {{$NEXT}}
   - Use and recommend URI to portably parse filenames into URLs
+  - Add from_filename method
 
 0.007     2015-08-01 15:17:22 EDT
   - Clarify use of URLs in connection strings

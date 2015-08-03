@@ -69,6 +69,13 @@ $options = {
 };
 is_deeply $sql->options, $options, 'right options';
 
+# Parse filename
+{
+  local %URI::file::OS_CLASS = (); # so filename will be parsed as unix
+  $sql = Mojo::SQLite->new->from_filename('/foo#/bar?.db');
+  is $sql->dsn, 'dbi:SQLite:uri=file:/foo%23/bar%3F.db', 'right data source';
+}
+
 # Invalid connection string
 eval { Mojo::SQLite->new('http://localhost:3000/test') };
 like $@, qr/Invalid SQLite connection string/, 'right error';
