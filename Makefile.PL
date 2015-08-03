@@ -23,12 +23,15 @@ my %WriteMakefileArgs = (
     "DBI" => "1.633",
     "File::Temp" => 0,
     "Mojolicious" => "6.14",
-    "Scalar::Util" => 0
+    "Scalar::Util" => 0,
+    "URI" => "1.69",
+    "URI::QueryParam" => "1.69",
+    "URI::file" => "4.21"
   },
   "TEST_REQUIRES" => {
     "Test::More" => "0.88"
   },
-  "VERSION" => "0.007",
+  "VERSION" => "0.008",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -43,7 +46,10 @@ my %FallbackPrereqs = (
   "File::Temp" => 0,
   "Mojolicious" => "6.14",
   "Scalar::Util" => 0,
-  "Test::More" => "0.88"
+  "Test::More" => "0.88",
+  "URI" => "1.69",
+  "URI::QueryParam" => "1.69",
+  "URI::file" => "4.21"
 );
 
 
