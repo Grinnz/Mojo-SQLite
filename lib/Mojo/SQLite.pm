@@ -11,7 +11,7 @@ use URI;
 use URI::QueryParam;
 use URI::file;
 
-our $VERSION = '0.008';
+our $VERSION = '0.009';
 
 has dsn => sub {
   my $uri = _uri_from_path(shift->_tempfile_path);

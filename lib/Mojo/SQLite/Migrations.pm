@@ -7,7 +7,7 @@ use Mojo::Util qw(decode slurp);
 
 use constant DEBUG => $ENV{MOJO_MIGRATIONS_DEBUG} || 0;
 
-our $VERSION = '0.008';
+our $VERSION = '0.009';
 
 has name => 'migrations';
 has 'sqlite';
