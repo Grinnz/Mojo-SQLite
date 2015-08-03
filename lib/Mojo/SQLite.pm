@@ -329,8 +329,6 @@ will be parsed and applied to L</"options">.
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
   
-  use URI::file;
-  use URI::QueryParam;
   my $uri = URI::file->new($filename);
   $uri->query_form_hash({PrintError => 1, sqlite_allow_multiple_statements => 1});
   $sql->from_string($uri);
