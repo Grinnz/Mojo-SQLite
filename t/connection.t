@@ -44,8 +44,8 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
-my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix');
-$uri->query_form_hash({PrintError => 1, RaiseError => 0});
+my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix')
+  ->Mojo::Base::tap(query_form_hash => {PrintError => 1, RaiseError => 0});
 $sql = Mojo::SQLite->new($uri);
 is $sql->dsn, 'dbi:SQLite:uri=file:/tmp/sqlite.db%3F%23', 'right data source';
 $options = {

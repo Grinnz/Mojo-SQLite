@@ -286,7 +286,7 @@ separately.
   my $db = $sql->from_filename(':memory:')->db;
 
   # Additional options
-  $sql->from_filename($filename)->options({PrintError => 1});
+  $sql->from_filename($filename)->tap(sub { $_->options->{PrintError} = 1 });
 
 =head2 from_string
 
@@ -323,10 +323,7 @@ will be parsed and applied to L</"options">.
 
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
-  
-  my $uri = URI::file->new($filename);
-  $uri->query_form_hash({PrintError => 1, sqlite_allow_multiple_statements => 1});
-  $sql->from_string($uri);
+  $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form_hash => {PrintError => 1}));
 
 =head2 new
 
