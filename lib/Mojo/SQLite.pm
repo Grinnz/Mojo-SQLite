@@ -14,8 +14,7 @@ use URI::file;
 our $VERSION = '0.009';
 
 has dsn => sub {
-  my $uri = _uri_from_path(shift->_tempfile_path);
-  return "dbi:SQLite:uri=$uri";
+  'dbi:SQLite:uri=' . _uri_from_path(shift->_tempfile_path);
 };
 has max_connections => 5;
 has migrations      => sub {
@@ -76,8 +75,10 @@ sub _dequeue {
   my $self = shift;
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
   my $dbh = DBI->connect(map { $self->$_ } qw(dsn username password options));
-  $dbh->do('pragma journal_mode=WAL');
-  $dbh->do('pragma synchronous=NORMAL');
+  if ($dbh) {
+    $dbh->do('pragma journal_mode=WAL');
+    $dbh->do('pragma synchronous=NORMAL');
+  }
   $self->emit(connection => $dbh);
   return $dbh;
 }
@@ -95,13 +96,7 @@ sub _tempfile_path {
   return URI::file->new($self->{tempfile}->filename)->path;
 };
 
-sub _uri_from_path {
-  my $path = shift;
-  my $uri = URI->new;
-  $uri->scheme('file');
-  $uri->path($path);
-  return $uri;
-}
+sub _uri_from_path { URI->new->Mojo::Base::tap(scheme => 'file')->Mojo::Base::tap(path => shift) }
 
 1;
 
