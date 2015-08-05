@@ -8,8 +8,6 @@ use URI::QueryParam;
 # Defaults
 my $sql = Mojo::SQLite->new;
 like $sql->dsn,    qr/^dbi:SQLite:uri=file:/, 'right data source';
-is $sql->username, undef,                     'no username';
-is $sql->password, undef,                     'no password';
 my $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,

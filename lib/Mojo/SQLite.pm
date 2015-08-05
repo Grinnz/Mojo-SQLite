@@ -13,16 +13,13 @@ use URI::file;
 
 our $VERSION = '0.009';
 
-has dsn => sub {
-  'dbi:SQLite:uri=' . _uri_from_path(shift->_tempfile_path);
-};
+has dsn => sub { _dsn_from_path(shift->_tempfile_path) };
 has max_connections => 5;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
   weaken $migrations->{sqlite};
   return $migrations;
 };
-has [qw(password username)];
 has options => sub {
   {
     AutoCommit          => 1,
@@ -59,8 +56,7 @@ sub from_string {
   # Database file
   my $path = $uri->path;
   $path = $self->_tempfile_path if $path eq ':temp:';
-  my $new_uri = _uri_from_path($path);
-  my $dsn = "dbi:SQLite:uri=$new_uri";
+  my $dsn = _dsn_from_path($path);
 
   # Options
   my $options = $uri->query_form_hash;
@@ -74,14 +70,16 @@ sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
 sub _dequeue {
   my $self = shift;
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
-  my $dbh = DBI->connect(map { $self->$_ } qw(dsn username password options));
-  if ($dbh) {
+  my $dbh = DBI->connect($self->dsn, undef, undef, $self->options);
+  if (defined $dbh) {
     $dbh->do('pragma journal_mode=WAL');
     $dbh->do('pragma synchronous=NORMAL');
   }
   $self->emit(connection => $dbh);
   return $dbh;
 }
+
+sub _dsn_from_path { 'dbi:SQLite:uri=' . _uri_from_path(shift) }
 
 sub _enqueue {
   my ($self, $dbh) = @_;
