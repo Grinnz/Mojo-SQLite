@@ -7,7 +7,7 @@ use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Scalar::Util 'weaken';
 
-our $VERSION = '0.009';
+our $VERSION = '0.010';
 
 has [qw(dbh sqlite)];
 
