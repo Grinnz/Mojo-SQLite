@@ -52,7 +52,7 @@ sub migrate {
   return $self if $self->_active($db, 1) == $target;
 
   # Lock migrations table and check version again
-  my $tx = $db->begin('exclusive');
+  my $tx = $db->begin;
   return $self if (my $active = $self->_active($db, 1)) == $target;
 
   # Up
