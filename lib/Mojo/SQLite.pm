@@ -90,8 +90,9 @@ sub _enqueue {
 
 sub _tempfile_path {
   my $self = shift;
-  $self->{tempfile} = File::Temp->new(EXLOCK => 0);
-  return URI::file->new($self->{tempfile}->filename)->path;
+  $self->{tempdir} //= File::Temp->newdir;
+  $self->{tempfile} = File::Temp->new(DIR => $self->{tempdir}, EXLOCK => 0);
+  return URI::file->new($self->{tempfile})->path;
 };
 
 sub _uri_from_path { URI->new->Mojo::Base::tap(scheme => 'file')->Mojo::Base::tap(path => shift) }
