@@ -58,6 +58,16 @@ like $@, qr/does_not_exist/, 'right error';
 is_deeply $db->query('select * from results_test where name = ?', 'tx3')
   ->hashes->to_array, [], 'no results';
 
+# Rollback with unfinished fetch
+my $first;
+{
+  my $tx = $db->begin;
+  $results = $db->query('select * from results_test where name = ? order by id', 'tx1');
+  $first = $results->hash;
+  $results->sth->finish;
+}
+is_deeply $first, {id => 3, name => 'tx1'}, 'right first result';
+
 $db->query('drop table results_test');
 
 done_testing();
