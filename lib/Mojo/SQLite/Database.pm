@@ -3,6 +3,7 @@ use Mojo::Base -base;
 
 use Carp 'croak';
 use DBD::SQLite;
+use Mojo::IOLoop;
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Scalar::Util 'weaken';
@@ -68,9 +69,13 @@ sub query {
     return undef unless defined $sth;
   }
 
+  # Blocking
   my $results = Mojo::SQLite::Results->new(sth => $sth);
-  $self->$cb($error, $results) if $cb;
-  return $cb ? $self : $results;
+  return $results unless $cb;
+
+  # Still blocking, but call the callback on the next tick
+  Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
+  return $self;
 }
 
 sub _bind_params {
@@ -183,6 +188,7 @@ still executed in a blocking manner.
     my ($db, $err, $results) = @_;
     ...
   });
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 =head1 BUGS
 

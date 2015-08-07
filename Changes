@@ -1,6 +1,7 @@
 {{$NEXT}}
   - Create a tempdir for temporary databases
   - Use immediate locking for migrations instead of exclusive
+  - Run query callbacks using next_tick instead of immediately
 
 0.009     2015-08-05 12:28:48 EDT
   - Simplify some code and examples with Mojo::Base::tap

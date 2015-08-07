@@ -24,8 +24,10 @@ $db->query(
     my ($db, $err, $results) = @_;
     $fail   = $err;
     $result = $results->hash;
+    Mojo::IOLoop->stop;
   }
 );
+Mojo::IOLoop->start;
 ok !$fail, 'no error';
 is_deeply $result, {one => 1, two => 2, three => 3}, 'right structure';
 
@@ -154,8 +156,10 @@ $db->query(
   'does_not_exist' => sub {
     my ($db, $err, $results) = @_;
     ($fail, $result) = ($err, $results);
+    Mojo::IOLoop->stop;
   }
 );
+Mojo::IOLoop->start;
 like $fail, qr/does_not_exist/, 'right error';
 is $db->dbh->errstr, $fail, 'same error';
 
