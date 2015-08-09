@@ -59,12 +59,11 @@ is_deeply $db->query('select * from results_test where name = ?', 'tx3')
   ->hashes->to_array, [], 'no results';
 
 { # Issue #2
-  my $results1 = $db->query('select * from results_test where name = ?', 'tx1');
-  is_deeply $results1->hash, {id => 3, name => 'tx1'}, 'first result';
-  $results1->sth->finish;
-  my $results2 = $db->query('select * from results_test where name = ?', 'tx1');
+  my $results1 = $db->query('select 1 as one');
+  is_deeply $results1->hashes, [{one => 1}], 'right structure';
+  my $results2 = $db->query('select 1 as one');
   undef $results1;
-  is_deeply $results2->hash, {id => 3, name => 'tx1'}, 'first result';
+  is_deeply $results2->hashes, [{one => 1}], 'right structure';
 }
 
 undef $results;

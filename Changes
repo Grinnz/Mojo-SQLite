@@ -3,7 +3,7 @@
   - Use immediate locking for migrations instead of exclusive
   - Run query callbacks using next_tick instead of immediately
   - Don't call finish in Results destructor while other Results objects refer
-    to the statement handle
+    to the statement handle (GH #2)
 
 0.009     2015-08-05 12:28:48 EDT
   - Simplify some code and examples with Mojo::Base::tap
