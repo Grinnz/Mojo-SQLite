@@ -80,6 +80,12 @@ L<DBD::SQLite> statement handle results are fetched from.
 L<Mojo::SQLite::Results> inherits all methods from L<Mojo::Base> and implements
 the following new ones.
 
+=head2 new
+
+  my $results = Mojo::SQLite::Results->new(sth => $sth);
+
+Construct a new L<Mojo::SQLite::Results> object.
+
 =head2 array
 
   my $array = $results->array;
@@ -127,12 +133,6 @@ containing hash references.
 
   # Process all rows at once
   say $results->hashes->reduce(sub { $a->{money} + $b->{money} });
-
-=head2 new
-
-  my $results = Mojo::SQLite::Results->new(sth => $sth);
-
-Construct a new L<Mojo::SQLite::Results> object.
 
 =head2 rows
 

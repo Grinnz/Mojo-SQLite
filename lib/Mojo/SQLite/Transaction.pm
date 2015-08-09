@@ -55,12 +55,6 @@ L<Mojo::SQLite::Database> object this transaction belongs to.
 L<Mojo::SQLite::Transaction> inherits all methods from L<Mojo::Base> and
 implements the following new ones.
 
-=head2 commit
-
-  $tx->commit;
-
-Commit transaction.
-
 =head2 new
 
   my $tx = Mojo::SQLite::Transaction->new;
@@ -68,6 +62,12 @@ Commit transaction.
   my $tx = Mojo::SQLite::Transaction->new({db => Mojo::SQLite::Database->new});
 
 Construct a new L<Mojo::SQLite::Transaction> object.
+
+=head2 commit
+
+  $tx->commit;
+
+Commit transaction.
 
 =head1 BUGS
 
