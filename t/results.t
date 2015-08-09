@@ -67,6 +67,7 @@ is_deeply $db->query('select * from results_test where name = ?', 'tx3')
   is_deeply $results2->hash, {id => 3, name => 'tx1'}, 'first result';
 }
 
+undef $results;
 $db->query('drop table results_test');
 
 done_testing();

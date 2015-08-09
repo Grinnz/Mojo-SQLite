@@ -8,7 +8,7 @@ our $VERSION = '0.010';
 
 has 'sth';
 
-sub DESTROY { $_[0]{sth}->finish if $_[0]{sth} }
+sub DESTROY { shift->_decrement_refcount->_finish }
 
 sub array { (shift->sth->fetchrow_arrayref)[0] }
 
@@ -20,11 +20,31 @@ sub hash { (shift->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{shift->sth->fetchall_arrayref({})}) }
 
+sub new { shift->SUPER::new(@_)->_increment_refcount }
+
 sub rows { shift->sth->rows }
 
 sub text { tablify shift->arrays }
 
 sub _collect { Mojo::Collection->new(@_) }
+
+sub _decrement_refcount {
+  my $self = shift;
+  return $self unless $self->{sth};
+  my $count = $self->{sth}{private_mojo_refcount} // 0;
+  $self->{sth}{private_mojo_refcount} = $count-1 if $count;
+  return $self;
+}
+
+sub _finish { $_[0]{sth}->finish if $_[0]{sth} and !$_[0]{sth}{private_mojo_refcount}; $_[0] }
+
+sub _increment_refcount {
+  my $self = shift;
+  return $self unless $self->{sth};
+  my $count = $self->{sth}{private_mojo_refcount} // 0;
+  $self->{sth}{private_mojo_refcount} = $count+1;
+  return $self;
+}
 
 1;
 
@@ -107,6 +127,12 @@ containing hash references.
 
   # Process all rows at once
   say $results->hashes->reduce(sub { $a->{money} + $b->{money} });
+
+=head2 new
+
+  my $results = Mojo::SQLite::Results->new(sth => $sth);
+
+Construct a new L<Mojo::SQLite::Results> object.
 
 =head2 rows
 
