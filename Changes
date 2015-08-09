@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.010     2015-08-08 22:50:06 EDT
   - Create a tempdir for temporary databases
   - Use immediate locking for migrations instead of exclusive
   - Run query callbacks using next_tick instead of immediately
