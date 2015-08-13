@@ -1,4 +1,7 @@
 {{$NEXT}}
+  - Simplify Results refcounting
+  - Pass undef instead of broken Results object to callback if statement
+    prepare failed
 
 0.010     2015-08-08 22:50:06 EDT
   - Create a tempdir for temporary databases

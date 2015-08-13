@@ -54,7 +54,7 @@ sub query {
     local $@;
     eval {
       $sth = $self->dbh->prepare_cached($query, undef, 3);
-      # If RaiseError has been disabled, we might not get a $sth
+      # If RaiseError has been disabled, we might not get a handle
       do { _bind_params($sth, @_); $sth->execute } if defined $sth;
       1;
     } or $errored = 1;
@@ -64,13 +64,11 @@ sub query {
   if ($errored) {
     die $error unless $cb;
     $error = $self->dbh->errstr;
-  } else {
-    # only possible with RaiseError disabled and error in prepare
-    return undef unless defined $sth;
   }
 
-  # Blocking
-  my $results = Mojo::SQLite::Results->new(sth => $sth);
+  # We won't have a statement handle if prepare failed in a "non-blocking"
+  # query or with RaiseError disabled
+  my $results = defined $sth ? Mojo::SQLite::Results->new(sth => $sth) : undef;
   return $results unless $cb;
 
   # Still blocking, but call the callback on the next tick

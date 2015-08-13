@@ -8,7 +8,11 @@ our $VERSION = '0.011';
 
 has 'sth';
 
-sub DESTROY { shift->_decrement_refcount->_finish }
+sub DESTROY {
+  my $self = shift;
+  return unless my $sth = $self->{sth};
+  $sth->finish unless --$sth->{private_mojo_refcount};
+}
 
 sub array { (shift->sth->fetchrow_arrayref)[0] }
 
@@ -20,31 +24,17 @@ sub hash { (shift->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{shift->sth->fetchall_arrayref({})}) }
 
-sub new { shift->SUPER::new(@_)->_increment_refcount }
+sub new {
+  my $self = shift->SUPER::new(@_);
+  ($self->{sth}{private_mojo_refcount} //= 0)++;
+  return $self;
+}
 
 sub rows { shift->sth->rows }
 
 sub text { tablify shift->arrays }
 
 sub _collect { Mojo::Collection->new(@_) }
-
-sub _decrement_refcount {
-  my $self = shift;
-  return $self unless $self->{sth};
-  my $count = $self->{sth}{private_mojo_refcount} // 0;
-  $self->{sth}{private_mojo_refcount} = $count-1 if $count;
-  return $self;
-}
-
-sub _finish { $_[0]{sth}->finish if $_[0]{sth} and !$_[0]{sth}{private_mojo_refcount}; $_[0] }
-
-sub _increment_refcount {
-  my $self = shift;
-  return $self unless $self->{sth};
-  my $count = $self->{sth}{private_mojo_refcount} // 0;
-  $self->{sth}{private_mojo_refcount} = $count+1;
-  return $self;
-}
 
 1;
 
