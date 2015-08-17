@@ -10,6 +10,8 @@ use Scalar::Util 'weaken';
 
 our $VERSION = '0.012';
 
+our @CARP_NOT = qw(Mojo::SQLite::Migrations);
+
 has [qw(dbh sqlite)];
 
 sub DESTROY {

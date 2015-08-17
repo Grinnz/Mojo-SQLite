@@ -70,7 +70,16 @@ sub migrate {
 
   warn "-- Migrate ($active -> $target)\n$query\n" if DEBUG;
   local $db->dbh->{sqlite_allow_multiple_statements} = 1;
-  $db->dbh->do($query);
+  
+  my ($errored, $error, $result);
+  {
+    local $@;
+    eval { $result = $db->dbh->do($query); 1 } or $errored = 1;
+    $error = $@ if $errored;
+  }
+  croak $error if $errored;
+  return $self unless defined $result;
+  
   $db->query('update mojo_migrations set version = ? where name = ?',
     $target, $self->name) and $tx->commit;
 

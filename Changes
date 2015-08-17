@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Include better context for DB error messages from $db->query and migrations
 
 0.011     2015-08-13 20:43:37 EDT
   - Simplify Results refcounting
