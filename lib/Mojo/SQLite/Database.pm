@@ -62,7 +62,7 @@ sub query {
   }
 
   if ($errored) {
-    die $error unless $cb;
+    croak $error unless $cb;
     $error = $self->dbh->errstr;
   }
 
