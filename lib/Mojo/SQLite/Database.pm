@@ -64,6 +64,7 @@ sub query {
   }
 
   if ($errored) {
+    # Croak error for better context
     croak $error unless $cb;
     $error = $self->dbh->errstr;
   }

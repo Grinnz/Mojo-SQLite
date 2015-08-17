@@ -70,7 +70,8 @@ sub migrate {
 
   warn "-- Migrate ($active -> $target)\n$query\n" if DEBUG;
   local $db->dbh->{sqlite_allow_multiple_statements} = 1;
-  
+
+  # Catch the error so we can croak it  
   my ($errored, $error, $result);
   {
     local $@;
@@ -78,7 +79,7 @@ sub migrate {
     $error = $@ if $errored;
   }
   croak $error if $errored;
-  return $self unless defined $result;
+  return $self unless defined $result; # RaiseError disabled
   
   $db->query('update mojo_migrations set version = ? where name = ?',
     $target, $self->name) and $tx->commit;
