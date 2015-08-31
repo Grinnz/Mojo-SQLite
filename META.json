@@ -26,14 +26,15 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "0"
+            "Module::Build::Tiny" : "0.034"
          }
       },
       "develop" : {
          "requires" : {
-            "Dist::Zilla::PluginBundle::Author::DBOOK" : "0.008",
-            "Test::Pod" : "1.14",
-            "Test::Pod::Coverage" : "1.04"
+            "Dist::Zilla::PluginBundle::Author::DBOOK" : "0.016",
+            "Pod::Coverage::TrustPod" : "0",
+            "Test::Pod" : "1.41",
+            "Test::Pod::Coverage" : "1.08"
          }
       },
       "runtime" : {
@@ -59,23 +60,23 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "0.011"
+         "version" : "0.012"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "0.011"
+         "version" : "0.012"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "0.011"
+         "version" : "0.012"
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "0.011"
+         "version" : "0.012"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "0.011"
+         "version" : "0.012"
       }
    },
    "release_status" : "stable",
@@ -90,7 +91,7 @@
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
       }
    },
-   "version" : "0.011",
+   "version" : "0.012",
    "x_contributors" : [
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>"
