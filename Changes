@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.012     2015-08-31 18:26:47 EDT
   - Include better context for DB error messages from $db->query and migrations
   - Switch installer to Module::Build::Tiny
 
