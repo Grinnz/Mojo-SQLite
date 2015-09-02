@@ -14,6 +14,18 @@ our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
 has [qw(dbh sqlite)];
 
+sub new {
+  my $self = shift->SUPER::new(@_);
+  # Cache the last insert rowid on inserts
+  if (my $dbh = $self->dbh) {
+    weaken $dbh;
+    $dbh->sqlite_update_hook(sub {
+      $dbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
+    });
+  }
+  return $self;
+}
+
 sub DESTROY {
   my $self = shift;
 
@@ -72,6 +84,7 @@ sub query {
   # We won't have a statement handle if prepare failed in a "non-blocking"
   # query or with RaiseError disabled
   my $results = defined $sth ? Mojo::SQLite::Results->new(sth => $sth) : undef;
+  $results->{last_insert_id} = $self->dbh->{private_mojo_last_insert_id} if defined $results;
   return $results unless $cb;
 
   # Still blocking, but call the callback on the next tick
@@ -134,6 +147,14 @@ L<Mojo::SQLite> object this database belongs to.
 
 L<Mojo::SQLite::Database> inherits all methods from L<Mojo::Base> and
 implements the following new ones.
+
+=head2 new
+
+  my $db = Mojo::SQLite::Database->new;
+  my $db = Mojo::SQLite::Database->new(dbh => $dbh, sqlite => Mojo::SQLite->new);
+  my $db = Mojo::SQLite::Database->new({dbh => $dbh, sqlite => Mojo::SQLite->new);
+
+Construct a new L<Mojo::SQLite::Database> object.
 
 =head2 begin
 

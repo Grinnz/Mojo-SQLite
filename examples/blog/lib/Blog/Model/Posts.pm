@@ -7,8 +7,7 @@ sub add {
   my ($self, $post) = @_;
   my $db = $self->sqlite->db;
   my $sql = 'insert into posts (title, body) values (?, ?)';
-  $db->query($sql, $post->{title}, $post->{body});
-  return $db->query('select last_insert_rowid()')->array->[0];
+  return $db->query($sql, $post->{title}, $post->{body})->last_insert_id;
 }
 
 sub all { shift->sqlite->db->query('select * from posts')->hashes->to_array }

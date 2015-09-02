@@ -126,8 +126,8 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   say $@ if $@;
 
   # Insert another row and return the generated id
-  $db->query('insert into names (name) values (?)', 'Daniel');
-  say $db->query('select last_insert_rowid() as id')->hash->{id};
+  say $db->query('insert into names (name) values (?)', 'Daniel')
+    ->last_insert_id;
 
   # Select one row at a time
   my $results = $db->query('select * from names');

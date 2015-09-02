@@ -71,6 +71,9 @@ sub migrate {
   warn "-- Migrate ($active -> $target)\n$query\n" if DEBUG;
   local $db->dbh->{sqlite_allow_multiple_statements} = 1;
 
+  # Disable update hook during migrations
+  my $hook = $db->dbh->sqlite_update_hook(undef);
+
   # Catch the error so we can croak it  
   my ($errored, $error, $result);
   {
@@ -78,6 +81,10 @@ sub migrate {
     eval { $result = $db->dbh->do($query); 1 } or $errored = 1;
     $error = $@ if $errored;
   }
+  
+  # Re-enable update hook
+  $db->dbh->sqlite_update_hook($hook);
+  
   croak $error if $errored;
   return $self unless defined $result; # RaiseError disabled
   

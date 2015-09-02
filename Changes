@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Cache rowid for successful inserts in Results objects as last_insert_id
 
 0.012     2015-08-31 18:26:47 EDT
   - Include better context for DB error messages from $db->query and migrations

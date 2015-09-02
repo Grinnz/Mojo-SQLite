@@ -5,6 +5,12 @@ our $VERSION = '0.013';
 
 has 'db';
 
+sub new {
+  my $self = shift->SUPER::new(@_, rollback => 1);
+  $self->{dbh} = $self->db->dbh;
+  return $self;
+}
+
 sub DESTROY {
   my $self = shift;
   if ($self->{rollback} && (my $dbh = $self->{dbh})) { $dbh->rollback }
@@ -13,12 +19,6 @@ sub DESTROY {
 sub commit {
   my $self = shift;
   $self->{dbh}->commit if delete $self->{rollback};
-}
-
-sub new {
-  my $self = shift->SUPER::new(@_, rollback => 1);
-  $self->{dbh} = $self->db->dbh;
-  return $self;
 }
 
 1;

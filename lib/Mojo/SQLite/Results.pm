@@ -8,6 +8,12 @@ our $VERSION = '0.013';
 
 has 'sth';
 
+sub new {
+  my $self = shift->SUPER::new(@_);
+  ($self->{sth}{private_mojo_refcount} //= 0)++;
+  return $self;
+}
+
 sub DESTROY {
   my $self = shift;
   return unless my $sth = $self->{sth};
@@ -20,15 +26,11 @@ sub arrays { _collect(@{shift->sth->fetchall_arrayref}) }
 
 sub columns { shift->sth->{NAME} }
 
+sub last_insert_id { shift->{last_insert_id} // 0 }
+
 sub hash { (shift->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{shift->sth->fetchall_arrayref({})}) }
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  ($self->{sth}{private_mojo_refcount} //= 0)++;
-  return $self;
-}
 
 sub rows { shift->sth->rows }
 
@@ -72,7 +74,9 @@ the following new ones.
 
 =head2 new
 
+  my $results = Mojo::SQLite::Results->new;
   my $results = Mojo::SQLite::Results->new(sth => $sth);
+  my $results = Mojo::SQLite::Results->new({sth => $sth});
 
 Construct a new L<Mojo::SQLite::Results> object.
 
@@ -123,6 +127,13 @@ containing hash references.
 
   # Process all rows at once
   say $results->hashes->reduce(sub { $a->{money} + $b->{money} });
+
+=head2 last_insert_id
+
+  my $id = $results->last_insert_id;
+
+Returns the L<rowid|https://www.sqlite.org/c3ref/last_insert_rowid.html> of the
+most recent successful C<INSERT>.
 
 =head2 rows
 
