@@ -1,7 +1,7 @@
 package Mojo::SQLite::Transaction;
 use Mojo::Base -base;
 
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 
 has 'db';
 
