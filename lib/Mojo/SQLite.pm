@@ -30,6 +30,8 @@ has options => sub {
   };
 };
 
+sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
+
 sub db {
   my $self = shift;
 
@@ -64,8 +66,6 @@ sub from_string {
 
   return $self->dsn($dsn);
 }
-
-sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
 
 sub _dequeue {
   my $self = shift;
@@ -364,6 +364,10 @@ Report any issues on the public bugtracker.
 =head1 AUTHOR
 
 Dan Book, C<dbook@cpan.org>
+
+=head1 CREDITS
+
+Sebastian Riedel, author of L<Mojo::Pg>, which this distribution is based on.
 
 =head1 COPYRIGHT AND LICENSE
 

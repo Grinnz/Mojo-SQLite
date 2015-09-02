@@ -266,6 +266,10 @@ Report any issues on the public bugtracker.
 
 Dan Book, C<dbook@cpan.org>
 
+=head1 CREDITS
+
+Sebastian Riedel, author of L<Mojo::Pg>, which this distribution is based on.
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2015, Dan Book.
