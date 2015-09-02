@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.013     2015-09-02 02:44:36 EDT
   - Cache rowid for successful inserts in Results objects as last_insert_id
 
 0.012     2015-08-31 18:26:47 EDT
