@@ -11,7 +11,9 @@ $db->query(
      name text
    )'
 );
-$db->query('insert into results_test (name) values (?)', $_) for qw(foo bar);
+my $results;
+$results = $db->query('insert into results_test (name) values (?)', $_) for qw(foo bar);
+is $results->last_insert_id, 2, 'right last_insert_id';
 is $db->query('update results_test set name=name')->rows, 2, 'two rows affected';
 
 # Result methods
@@ -19,7 +21,7 @@ is_deeply $db->query('select * from results_test')->columns, ['id', 'name'],
   'right structure';
 is_deeply $db->query('select * from results_test')->array, [1, 'foo'],
   'right structure';
-my $results = $db->query('select * from results_test');
+$results = $db->query('select * from results_test');
 is_deeply $results->arrays->to_array,
   [[1, 'foo'], [2, 'bar']], 'right structure';
 is_deeply $results->rows, 2, 'two rows';
