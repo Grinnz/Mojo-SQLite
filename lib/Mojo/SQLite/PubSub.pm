@@ -151,4 +151,4 @@ Unsubscribe from a channel.
 
 =head1 SEE ALSO
 
-L<Mojo::SQLite>
+L<Mojo::SQLite>, L<Mojo::SQLite::Database>
