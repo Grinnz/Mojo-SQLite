@@ -146,10 +146,10 @@ ok !$connections, 'no new connections';
 $sql->unsubscribe('connection');
 
 # Notifications
-$db = $sql->db->pubsub_poll_interval(0.1);
+$db = $sql->db->notification_poll_interval(0.1);
 ok !$db->is_listening, 'not listening';
 ok $db->listen('dbtest')->is_listening, 'listening';
-my $db2 = $sql->db->pubsub_poll_interval(0.1)->listen('dbtest');
+my $db2 = $sql->db->notification_poll_interval(0.1)->listen('dbtest');
 my @notifications;
 Mojo::IOLoop->delay(
   sub {

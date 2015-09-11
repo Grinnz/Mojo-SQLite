@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Add Mojo::SQLite::PubSub and listen/notify implementation in Mojo::SQLite::Database
 
 0.013     2015-09-02 02:44:36 EDT
   - Cache rowid for successful inserts in Results objects as last_insert_id

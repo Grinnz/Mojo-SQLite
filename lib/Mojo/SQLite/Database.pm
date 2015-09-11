@@ -15,7 +15,7 @@ our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
 
 has 'dbh';
-has 'pubsub_poll_interval' => 0.5;
+has 'notification_poll_interval' => 0.5;
 has 'sqlite';
 
 sub new {
@@ -81,7 +81,7 @@ sub notify {
   $payload //= '';
   warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
   $self->_init_pubsub;
-  $self->query('insert into mojo_pubsub (channel, payload) values (?, ?)', $name, $payload);
+  $self->query('insert into mojo_pubsub_notify (channel, payload) values (?, ?)', $name, $payload);
   $self->_notifications;
 
   return $self;
@@ -149,22 +149,31 @@ sub _bind_params {
   return $sth;
 }
 
+sub _cleanup_pubsub {
+  my $self = shift;
+  # Delete any notifications that have been seen by all non-stale subscribers
+  $self->dbh->do(q{delete from mojo_pubsub_notify where id <=
+    (select min(last_notify_id) from mojo_pubsub_listen where last_updated >= strftime('%s','now','-1 days'))});
+}
+
 sub _init_pubsub {
   my $self = shift;
   return if $self->{init_pubsub} || $self->{init_pubsub}++;
   $self->sqlite->migrations->name('pubsub')->from_data->migrate;
-  $self->{pubsub_last_id} //= $self->dbh->selectrow_array('select id from mojo_pubsub order by id desc limit 1') // 0;
 }
 
 sub _notifications {
   my $self = shift;
   if ($self->is_listening) {
-    $self->_init_pubsub;
-    my $notifies = $self->dbh->selectall_arrayref("select id, channel, payload from mojo_pubsub
-      where id > ? order by id asc", { Slice => {} }, $self->{pubsub_last_id});
+    my $notifies = $self->dbh->selectall_arrayref('select id, channel, payload from mojo_pubsub_notify
+      where id > ? order by id asc', { Slice => {} }, $self->{pubsub_last_notify_id});
     if ($notifies and @$notifies) {
       do { my $count = @$notifies; warn qq{$self has received $count notifications\n} } if DEBUG;
-      $self->{pubsub_last_id} = $notifies->[-1]{id};
+      $self->{pubsub_last_notify_id} = $notifies->[-1]{id};
+      $self->dbh->do(q{update mojo_pubsub_listen set last_notify_id=?,
+        last_updated=strftime('%s','now') where id=?}, undef,
+        $self->{pubsub_last_notify_id}, $self->{pubsub_listen_id});
+      $self->_cleanup_pubsub;
       foreach my $notify (@$notifies) {
         $self->emit(notification => @{$notify}{qw(channel payload)})
           if exists $self->{listen}{$notify->{channel}};
@@ -179,6 +188,8 @@ sub _unwatch {
   warn qq{$self is no longer watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
+  local $@;
+  eval { $self->query('delete from mojo_pubsub_listen where id=?', $self->{pubsub_listen_id}) };
 }
 
 sub _watch {
@@ -186,12 +197,16 @@ sub _watch {
   return if $self->{watching} || $self->{watching}++;
   warn qq{$self now watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
-  my $interval = $self->pubsub_poll_interval;
+  my $interval = $self->notification_poll_interval;
   $self->{pubsub_timer} = Mojo::IOLoop->recurring($interval => sub {
     local $@;
     $self->_unwatch if !eval { $self->_notifications; 1 }
       or !$self->is_listening;
   });
+  $self->{pubsub_last_notify_id} = @{$self->query('select id from mojo_pubsub_notify
+    order by id desc limit 1')->array // [0]}[0];
+  $self->{pubsub_listen_id} = $self->query('insert into mojo_pubsub_listen
+    (last_notify_id) values (?)', $self->{pubsub_last_notify_id})->last_insert_id;
 }
 
 1;
@@ -212,6 +227,10 @@ Mojo::SQLite::Database - Database
 
 L<Mojo::SQLite::Database> is a container for L<DBD::SQLite> database handles
 used by L<Mojo::SQLite>.
+
+As SQLite has no notification system, the L</"listen">, L</"notify">, and
+L</"unlisten"> methods are implemented using event loop polling on the
+internally managed tables C<mojo_pubsub_listen> and C<mojo_pubsub_notify>.
 
 =head1 EVENTS
 
@@ -248,10 +267,10 @@ L<Mojo::SQLite::Database> implements the following attributes.
 
 L<DBD::SQLite> database handle used for all queries.
 
-=head2 pubsub_poll_interval
+=head2 notification_poll_interval
 
-  my $interval = $db->pubsub_poll_interval;
-  $db          = $db->pubsub_poll_interval(1);
+  my $interval = $db->notification_poll_interval;
+  $db          = $db->notification_poll_interval(1);
 
 Interval in seconds to poll for notifications from L</"notify">, defaults to
 C<0.5>. Note that lower values will increase pubsub responsiveness as well as
@@ -392,14 +411,23 @@ __DATA__
 
 @@ pubsub
 -- 1 down
-drop table mojo_pubsub;
+drop table mojo_pubsub_listen;
+drop table mojo_pubsub_notify;
 
 -- 1 up
-drop table if exists mojo_pubsub;
+drop table if exists mojo_pubsub_listen;
+drop table if exists mojo_pubsub_notify;
 
-create table mojo_pubsub (
+create table mojo_pubsub_listen (
+  id integer primary key autoincrement,
+  last_notify_id integer not null default 0,
+  last_updated integer not null default (strftime('%s','now'))
+);
+create index last_notify_id_idx on mojo_pubsub_listen (last_notify_id);
+create index last_updated_idx on mojo_pubsub_listen (last_updated);
+create table mojo_pubsub_notify (
   id integer primary key autoincrement,
   channel text not null,
   payload text not null default ''
 );
-create index channel_idx on mojo_pubsub (channel);
+create index channel_idx on mojo_pubsub_notify (channel);

@@ -33,7 +33,7 @@ sub _db {
   return $self->{db} if $self->{db};
 
   my $db = $self->{db} =
-    $self->sqlite->db(pubsub_poll_interval => $self->poll_interval);
+    $self->sqlite->db(notification_poll_interval => $self->poll_interval);
   weaken $db->{sqlite};
   weaken $self;
   $db->on(
@@ -105,7 +105,7 @@ L<Mojo::SQLite::PubSub> implements the following attributes.
   $pubsub      = $pubsub->poll_interval(0.25);
 
 Interval in seconds to poll for notifications from L</"notify">, passed along
-to L<Mojo::SQLite::Database/"pubsub_poll_interval">.
+to L<Mojo::SQLite::Database/"notification_poll_interval">.
 
 =head2 sqlite
 
