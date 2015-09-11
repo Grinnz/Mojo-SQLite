@@ -2,6 +2,7 @@ requires 'perl' => '5.010001';
 requires 'Carp';
 requires 'DBI'         => '1.633';
 requires 'DBD::SQLite' => '1.48';
+requires 'File::Spec::Functions';
 requires 'File::Temp';
 requires 'Mojolicious' => '6.14';
 requires 'Scalar::Util';

@@ -3,6 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
 use DBI;
+use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
@@ -90,9 +91,8 @@ sub _enqueue {
 
 sub _tempfile_path {
   my $self = shift;
-  $self->{tempdir} //= File::Temp->newdir;
-  $self->{tempfile} = File::Temp->new(DIR => $self->{tempdir}, EXLOCK => 0);
-  return URI::file->new($self->{tempfile})->path;
+  my $filename = catfile($self->{tempdir} = File::Temp->newdir, 'sqlite.db');
+  return URI::file->new($filename)->path;
 };
 
 sub _uri_from_path { URI->new->Mojo::Base::tap(scheme => 'file')->Mojo::Base::tap(path => shift) }
