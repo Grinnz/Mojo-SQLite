@@ -81,7 +81,12 @@ sub notify {
   $payload //= '';
   warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
   $self->_init_pubsub;
-  $self->query('insert into mojo_pubsub_notify (channel, payload) values (?, ?)', $name, $payload);
+
+  my $notify_id = $self->query('insert into mojo_pubsub_notify (channel, payload)
+    values (?, ?)', $name, $payload)->last_insert_id;
+  $self->query('insert into mojo_pubsub_queue (listen_id, notify_id)
+    select id, ? from mojo_pubsub_listen', $notify_id);
+
   $self->_notifications;
 
   return $self;
@@ -151,28 +156,41 @@ sub _bind_params {
 
 sub _cleanup_pubsub {
   my $self = shift;
-  # Delete any notifications that have been seen by all non-stale subscribers
-  $self->dbh->do(q{delete from mojo_pubsub_notify where id <=
-    (select min(last_notify_id) from mojo_pubsub_listen where last_updated >= strftime('%s','now','-1 days'))});
+  # Delete any stale listeners and their queues
+  my $listen_ids = $self->dbh->selectcol_arrayref(q{select id from mojo_pubsub_listen
+    where last_updated < strftime('%s','now','-1 days')});
+  if (@$listen_ids) {
+    my $in_str = join ',', ('?')x@$listen_ids;
+    $self->dbh->do("delete from mojo_pubsub_queue where listen_id in ($in_str)", undef, @$listen_ids);
+    $self->dbh->do("delete from mojo_pubsub_listen where id in ($in_str)", undef, @$listen_ids);
+  }
+  # Delete any notifications that are no longer queued
+  my $notify_ids = $self->dbh->selectcol_arrayref('select n.id from mojo_pubsub_notify as n
+    left join mojo_pubsub_queue as q on q.notify_id=n.id where q.notify_id is null');
+  if (@$notify_ids) {
+    my $in_str = join ',', ('?')x@$notify_ids;
+    $self->dbh->do("delete from mojo_pubsub_notify where id in ($in_str)", undef, @$notify_ids);
+  }
 }
 
 sub _init_pubsub {
   my $self = shift;
   return if $self->{init_pubsub} || $self->{init_pubsub}++;
   $self->sqlite->migrations->name('pubsub')->from_data->migrate;
+  $self->_cleanup_pubsub;
 }
 
 sub _notifications {
   my $self = shift;
   if ($self->is_listening) {
-    my $notifies = $self->dbh->selectall_arrayref('select id, channel, payload from mojo_pubsub_notify
-      where id > ? order by id asc', { Slice => {} }, $self->{pubsub_last_notify_id});
+    my $notifies = $self->dbh->selectall_arrayref('select n.id, n.channel, n.payload
+      from mojo_pubsub_notify as n inner join mojo_pubsub_queue as q on q.notify_id=n.id
+      where q.listen_id=? order by n.id asc', { Slice => {} }, $self->{pubsub_listen_id});
     if ($notifies and @$notifies) {
       do { my $count = @$notifies; warn qq{$self has received $count notifications\n} } if DEBUG;
-      $self->{pubsub_last_notify_id} = $notifies->[-1]{id};
-      $self->dbh->do(q{update mojo_pubsub_listen set last_notify_id=?,
-        last_updated=strftime('%s','now') where id=?}, undef,
-        $self->{pubsub_last_notify_id}, $self->{pubsub_listen_id});
+      my $in_str = join ',', ('?')x@$notifies;
+      $self->dbh->do("delete from mojo_pubsub_queue where listen_id=? and notify_id in ($in_str)", undef,
+        $self->{pubsub_listen_id}, map { $_->{id} } @$notifies);
       $self->_cleanup_pubsub;
       foreach my $notify (@$notifies) {
         $self->emit(notification => @{$notify}{qw(channel payload)})
@@ -203,10 +221,7 @@ sub _watch {
     $self->_unwatch if !eval { $self->_notifications; 1 }
       or !$self->is_listening;
   });
-  $self->{pubsub_last_notify_id} = @{$self->query('select id from mojo_pubsub_notify
-    order by id desc limit 1')->array // [0]}[0];
-  $self->{pubsub_listen_id} = $self->query('insert into mojo_pubsub_listen
-    (last_notify_id) values (?)', $self->{pubsub_last_notify_id})->last_insert_id;
+  $self->{pubsub_listen_id} = $self->query('insert into mojo_pubsub_listen default values')->last_insert_id;
 }
 
 1;
@@ -413,17 +428,17 @@ __DATA__
 -- 1 down
 drop table mojo_pubsub_listen;
 drop table mojo_pubsub_notify;
+drop table mojo_pubsub_queue;
 
 -- 1 up
 drop table if exists mojo_pubsub_listen;
 drop table if exists mojo_pubsub_notify;
+drop table if exists mojo_pubsub_queue;
 
 create table mojo_pubsub_listen (
   id integer primary key autoincrement,
-  last_notify_id integer not null default 0,
   last_updated integer not null default (strftime('%s','now'))
 );
-create index last_notify_id_idx on mojo_pubsub_listen (last_notify_id);
 create index last_updated_idx on mojo_pubsub_listen (last_updated);
 create table mojo_pubsub_notify (
   id integer primary key autoincrement,
@@ -431,3 +446,9 @@ create table mojo_pubsub_notify (
   payload text not null default ''
 );
 create index channel_idx on mojo_pubsub_notify (channel);
+create table mojo_pubsub_queue (
+  listen_id integer not null,
+  notify_id integer not null
+);
+create index queue_listen_id_idx on mojo_pubsub_queue (listen_id, notify_id);
+create index queue_notify_id_idx on mojo_pubsub_queue (notify_id);
