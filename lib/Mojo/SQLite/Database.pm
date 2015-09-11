@@ -457,9 +457,9 @@ create index mojo_listener_last_checked_idx on mojo_pubsub_listener (last_checke
 
 create table mojo_pubsub_listen (
   listener_id integer not null,
-  channel text not null
+  channel text not null,
+  primary key (listener_id, channel)
 );
-create unique index mojo_listen_listener_id_idx on mojo_pubsub_listen (listener_id, channel);
 create index mojo_listen_channel_idx on mojo_pubsub_listen (channel);
 
 create table mojo_pubsub_notify (
@@ -471,7 +471,7 @@ create index mojo_notify_channel_idx on mojo_pubsub_notify (channel);
 
 create table mojo_pubsub_queue (
   listener_id integer not null,
-  notify_id integer not null
+  notify_id integer not null,
+  primary key (listener_id, notify_id)
 );
-create unique index mojo_queue_listener_id_idx on mojo_pubsub_queue (listener_id, notify_id);
 create index mojo_queue_notify_id_idx on mojo_pubsub_queue (notify_id);
