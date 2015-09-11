@@ -3,6 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Scalar::Util 'weaken';
 
+has 'poll_interval';
 has 'sqlite';
 
 sub listen {
@@ -31,7 +32,8 @@ sub _db {
 
   return $self->{db} if $self->{db};
 
-  my $db = $self->{db} = $self->sqlite->db;
+  my $db = $self->{db} =
+    $self->sqlite->db(pubsub_poll_interval => $self->poll_interval);
   weaken $db->{sqlite};
   weaken $self;
   $db->on(
@@ -42,6 +44,7 @@ sub _db {
   );
   $db->once(
     close => sub {
+      local $@;
       delete $self->{db};
       eval { $self->_db };
     }
@@ -95,6 +98,14 @@ notifications.
 =head1 ATTRIBUTES
 
 L<Mojo::SQLite::PubSub> implements the following attributes.
+
+=head2 poll_interval
+
+  my $interval = $pubsub->poll_interval;
+  $pubsub      = $pubsub->poll_interval(0.25);
+
+Interval in seconds to poll for notifications from L</"notify">, passed along
+to L<Mojo::SQLite::Database/"pubsub_poll_interval">.
 
 =head2 sqlite
 

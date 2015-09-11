@@ -12,7 +12,9 @@ our $VERSION = '0.014';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
-has [qw(dbh sqlite)];
+has 'dbh';
+has 'pubsub_poll_interval' => 0.5;
+has 'sqlite';
 
 sub new {
   my $self = shift->SUPER::new(@_);
@@ -64,6 +66,7 @@ sub listen {
   my ($self, $name) = @_;
 
   $self->{listen}{$name}++;
+  $self->_init_pubsub;
   $self->_watch;
 
   return $self;
@@ -73,8 +76,12 @@ sub notify {
   my ($self, $name, $payload) = @_;
 
   $self->_init_pubsub;
-  $self->query('insert into mojo_pubsub (channel, pid, payload)
-    values (?, ?, ?)', $name, $$, $payload);
+  if (defined $payload) {
+    $self->query('insert into mojo_pubsub (channel, pid, payload)
+      values (?, ?, ?)', $name, $$, $payload);
+  } else {
+    $self->query('insert into mojo_pubsub (channel, pid) values (?, ?)', $name, $$);
+  }
   $self->_notifications;
 
   return $self;
@@ -175,7 +182,8 @@ sub _watch {
   my $self = shift;
   return if $self->{watching} || $self->{watching}++;
   Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
-  $self->{pubsub_timer} = Mojo::IOLoop->recurring(1 => sub {
+  my $interval = $self->pubsub_poll_interval;
+  $self->{pubsub_timer} = Mojo::IOLoop->recurring($interval => sub {
     local $@;
     $self->_unwatch if !eval { $self->_notifications; 1 }
       or !$self->is_listening;
@@ -235,6 +243,15 @@ L<Mojo::SQLite::Database> implements the following attributes.
   $db     = $db->dbh(DBI->new);
 
 L<DBD::SQLite> database handle used for all queries.
+
+=head2 pubsub_poll_interval
+
+  my $interval = $db->pubsub_poll_interval;
+  $db          = $db->pubsub_poll_interval(1);
+
+Interval in seconds to poll for notifications from L</"notify">, defaults to
+C<0.5>. Note that lower values will increase pubsub responsiveness as well as
+CPU utilization.
 
 =head2 sqlite
 
@@ -373,6 +390,6 @@ create table mojo_pubsub (
   id integer primary key autoincrement,
   channel text not null,
   pid integer not null,
-  payload text
+  payload text not null default ''
 );
 create index channel_idx on mojo_pubsub (channel);

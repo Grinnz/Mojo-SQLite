@@ -146,10 +146,10 @@ ok !$connections, 'no new connections';
 $sql->unsubscribe('connection');
 
 # Notifications
-$db = $sql->db;
+$db = $sql->db->pubsub_poll_interval(0.1);
 ok !$db->is_listening, 'not listening';
 ok $db->listen('dbtest')->is_listening, 'listening';
-my $db2 = $sql->db->listen('dbtest');
+my $db2 = $sql->db->pubsub_poll_interval(0.1)->listen('dbtest');
 my @notifications;
 Mojo::IOLoop->delay(
   sub {
@@ -169,7 +169,7 @@ Mojo::IOLoop->delay(
     my ($delay, $name, $pid, $payload) = @_;
     push @notifications, [$name, $pid, $payload];
     $db2->listen('dbtest2')->once(notification => $delay->begin);
-    Mojo::IOLoop->next_tick(sub { $db2->query("notify dbtest2, 'bar'") });
+    Mojo::IOLoop->next_tick(sub { $db2->notify(dbtest2 => 'bar') });
   },
   sub {
     my ($delay, $name, $pid, $payload) = @_;
@@ -219,6 +219,7 @@ ok !$db->unlisten('*')->is_listening, 'not listening';
   my $close = 0;
   $db->on(close => sub { $close++ });
   $db->dbh->disconnect;
+  Mojo::IOLoop->start;
   is $close, 1, 'close event has been emitted once';
 };
 

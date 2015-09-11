@@ -4,13 +4,18 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 
 use Test::More;
 
+use File::Spec::Functions 'catfile';
+use File::Temp;
 use Mojo::IOLoop;
 use Mojo::SQLite;
 
+my $tempdir = File::Temp->newdir;
+my $tempfile = catfile($tempdir, 'test.db');
+
 # Notifications with event loop
-my $sql = Mojo::SQLite->new;
+my $sql = Mojo::SQLite->new->from_filename($tempfile);
 my ($db, @all, @test);
-$sql->pubsub->on(reconnect => sub { $db = pop });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { $db = pop });
 $sql->pubsub->listen(
   pstest => sub {
     my ($pubsub, $payload) = @_;
@@ -27,9 +32,9 @@ is_deeply \@all, [['pstest', 'test'], ['pstest', 'stop']],
   'right notifications';
 
 # Unsubscribe
-$sql = Mojo::SQLite->new;
+$sql = Mojo::SQLite->new->from_filename($tempfile);
 $db = undef;
-$sql->pubsub->on(reconnect => sub { $db = pop });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { $db = pop });
 @all = @test = ();
 my $first  = $sql->pubsub->listen(pstest => sub { push @test, pop });
 my $second = $sql->pubsub->listen(pstest => sub { push @test, pop });
@@ -47,9 +52,9 @@ is_deeply \@all, [['pstest', ''], ['pstest', 'first'], ['pstest', 'second']],
   'right notifications';
 
 # Reconnect while listening
-$sql = Mojo::SQLite->new;
+$sql = Mojo::SQLite->new->from_filename($tempfile);
 my @dbhs = @test = ();
-$sql->pubsub->on(reconnect => sub { push @dbhs, pop->dbh });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, $db->dbh });
 $sql->pubsub->listen(pstest => sub { push @test, pop });
 ok $dbhs[0], 'database handle';
 is_deeply \@test, [], 'no messages';
@@ -64,9 +69,9 @@ is_deeply \@test, [], 'no messages';
 };
 
 # Reconnect while not listening
-$sql = Mojo::SQLite->new;
+$sql = Mojo::SQLite->new->from_filename($tempfile);
 @dbhs = @test = ();
-$sql->pubsub->on(reconnect => sub { push @dbhs, pop->dbh });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, $db->dbh });
 $sql->pubsub->notify(pstest => 'fail');
 ok $dbhs[0], 'database handle';
 is_deeply \@test, [], 'no messages';
@@ -82,9 +87,9 @@ is_deeply \@test, [], 'no messages';
 };
 
 # Fork-safety
-$sql = Mojo::SQLite->new;
+$sql = Mojo::SQLite->new->from_filename($tempfile);
 @dbhs = @test = ();
-$sql->pubsub->on(reconnect => sub { push @dbhs, pop->dbh });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->listen(pstest => sub { push @test, pop });
 ok $dbhs[0], 'database handle';
 ok $dbhs[0]->ping, 'connected';
