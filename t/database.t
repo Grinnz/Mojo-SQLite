@@ -145,6 +145,83 @@ ok !$connections, 'no new connections';
 };
 $sql->unsubscribe('connection');
 
+# Notifications
+$db = $sql->db;
+ok !$db->is_listening, 'not listening';
+ok $db->listen('dbtest')->is_listening, 'listening';
+my $db2 = $sql->db->listen('dbtest');
+my @notifications;
+Mojo::IOLoop->delay(
+  sub {
+    my $delay = shift;
+    $db->once(notification => $delay->begin);
+    $db2->once(notification => $delay->begin);
+    Mojo::IOLoop->next_tick(sub { $db2->notify(dbtest => 'foo') });
+  },
+  sub {
+    my ($delay, $name, $pid, $payload, $name2, $pid2, $payload2) = @_;
+    push @notifications, [$name, $pid, $payload], [$name2, $pid2, $payload2];
+    $db->once(notification => $delay->begin);
+    $db2->unlisten('dbtest');
+    Mojo::IOLoop->next_tick(sub { $sql->db->notify('dbtest') });
+  },
+  sub {
+    my ($delay, $name, $pid, $payload) = @_;
+    push @notifications, [$name, $pid, $payload];
+    $db2->listen('dbtest2')->once(notification => $delay->begin);
+    Mojo::IOLoop->next_tick(sub { $db2->query("notify dbtest2, 'bar'") });
+  },
+  sub {
+    my ($delay, $name, $pid, $payload) = @_;
+    push @notifications, [$name, $pid, $payload];
+    $db2->once(notification => $delay->begin);
+    my $tx = $db2->begin;
+    Mojo::IOLoop->next_tick(
+      sub {
+        $db2->notify(dbtest2 => 'baz');
+        $tx->commit;
+      }
+    );
+  },
+  sub {
+    my ($delay, $name, $pid, $payload) = @_;
+    push @notifications, [$name, $pid, $payload];
+  }
+)->wait;
+ok !$db->unlisten('dbtest')->is_listening, 'not listening';
+ok !$db2->unlisten('*')->is_listening,     'not listening';
+is $notifications[0][0], 'dbtest',  'right channel name';
+ok $notifications[0][1], 'has process id';
+is $notifications[0][2], 'foo',     'right payload';
+is $notifications[1][0], 'dbtest',  'right channel name';
+ok $notifications[1][1], 'has process id';
+is $notifications[1][2], 'foo',     'right payload';
+is $notifications[2][0], 'dbtest',  'right channel name';
+ok $notifications[2][1], 'has process id';
+is $notifications[2][2], '',        'no payload';
+is $notifications[3][0], 'dbtest2', 'right channel name';
+ok $notifications[3][1], 'has process id';
+is $notifications[3][2], 'bar',     'no payload';
+is $notifications[4][0], 'dbtest2', 'right channel name';
+ok $notifications[4][1], 'has process id';
+is $notifications[4][2], 'baz',     'no payload';
+is $notifications[5], undef, 'no more notifications';
+
+# Stop listening for all notifications
+ok !$db->is_listening, 'not listening';
+ok $db->listen('dbtest')->listen('dbtest2')->unlisten('dbtest2')->is_listening,
+  'listening';
+ok !$db->unlisten('*')->is_listening, 'not listening';
+
+# Connection close while listening for notifications
+{
+  ok $db->listen('dbtest')->is_listening, 'listening';
+  my $close = 0;
+  $db->on(close => sub { $close++ });
+  $db->dbh->disconnect;
+  is $close, 1, 'close event has been emitted once';
+};
+
 # Blocking error
 eval { $sql->db->query('does_not_exist') };
 like $@, qr/does_not_exist/, 'right error';

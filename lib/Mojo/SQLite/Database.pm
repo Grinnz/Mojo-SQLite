@@ -1,5 +1,5 @@
 package Mojo::SQLite::Database;
-use Mojo::Base -base;
+use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
 use DBD::SQLite;
@@ -54,7 +54,30 @@ sub begin {
 
 sub disconnect {
   my $self = shift;
+  $self->_unwatch;
   $self->dbh->disconnect;
+}
+
+sub is_listening { !!keys %{shift->{listen} || {}} }
+
+sub listen {
+  my ($self, $name) = @_;
+
+  $self->{listen}{$name}++;
+  $self->_watch;
+
+  return $self;
+}
+
+sub notify {
+  my ($self, $name, $payload) = @_;
+
+  $self->_init_pubsub;
+  $self->query('insert into mojo_pubsub (channel, pid, payload)
+    values (?, ?, ?)', $name, $$, $payload);
+  $self->_notifications;
+
+  return $self;
 }
 
 sub ping { shift->dbh->ping }
@@ -85,10 +108,22 @@ sub query {
   # query or with RaiseError disabled
   my $results = defined $sth ? Mojo::SQLite::Results->new(sth => $sth) : undef;
   $results->{last_insert_id} = $self->dbh->{private_mojo_last_insert_id} if defined $results;
-  return $results unless $cb;
+  unless ($cb) {
+    $self->_notifications;
+    return $results;
+  }
 
   # Still blocking, but call the callback on the next tick
   Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
+  return $self;
+}
+
+sub unlisten {
+  my ($self, $name) = @_;
+
+  $name eq '*' ? delete $self->{listen} : delete $self->{listen}{$name};
+  $self->_unwatch unless $self->is_listening;
+  
   return $self;
 }
 
@@ -104,6 +139,47 @@ sub _bind_params {
     }
   }
   return $sth;
+}
+
+sub _init_pubsub {
+  my $self = shift;
+  return if $self->{init_pubsub} || $self->{init_pubsub}++;
+  $self->sqlite->migrations->name('pubsub')->from_data->migrate;
+  $self->{pubsub_last_id} //= $self->dbh->selectrow_array('select id from mojo_pubsub order by id desc limit 1') // 0;
+}
+
+sub _notifications {
+  my $self = shift;
+  if ($self->is_listening) {
+    $self->_init_pubsub;
+    my $notifies = $self->dbh->selectall_arrayref("select id, channel, pid, payload from mojo_pubsub
+      where id > ? order by id asc", { Slice => {} }, $self->{pubsub_last_id});
+    if ($notifies and @$notifies) {
+      $self->{pubsub_last_id} = $notifies->[-1]{id};
+      foreach my $notify (@$notifies) {
+        $self->emit(notification => @{$notify}{qw(channel pid payload)})
+          if exists $self->{listen}{$notify->{channel}};
+      }
+    }
+  }
+}
+
+sub _unwatch {
+  my $self = shift;
+  return unless delete $self->{watching};
+  Mojo::IOLoop->remove($self->{pubsub_timer});
+  $self->emit('close') if $self->is_listening;
+}
+
+sub _watch {
+  my $self = shift;
+  return if $self->{watching} || $self->{watching}++;
+  Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
+  $self->{pubsub_timer} = Mojo::IOLoop->recurring(1 => sub {
+    local $@;
+    $self->_unwatch if !eval { $self->_notifications; 1 }
+      or !$self->is_listening;
+  });
 }
 
 1;
@@ -124,6 +200,30 @@ Mojo::SQLite::Database - Database
 
 L<Mojo::SQLite::Database> is a container for L<DBD::SQLite> database handles
 used by L<Mojo::SQLite>.
+
+=head1 EVENTS
+
+L<Mojo::SQLite::Database> inherits all events from L<Mojo::EventEmitter> and
+can emit the following new ones.
+
+=head2 close
+
+  $db->on(close => sub {
+    my $db = shift;
+    ...
+  });
+
+Emitted when the database connection gets closed while waiting for
+notifications.
+
+=head2 notification
+
+  $db->on(notification => sub {
+    my ($db, $name, $pid, $payload) = @_;
+    ...
+  });
+
+Emitted when a notification has been received.
 
 =head1 ATTRIBUTES
 
@@ -185,6 +285,26 @@ details.
 
 Disconnect L</"dbh"> and prevent it from getting cached again.
 
+=head2 is_listening
+
+  my $bool = $db->is_listening;
+
+Check if L</"dbh"> is listening for notifications.
+
+=head2 listen
+
+  $db = $db->listen('foo');
+
+Subscribe to a channel and receive L</"notification"> events when the
+L<Mojo::IOLoop> event loop is running.
+
+=head2 notify
+
+  $db = $db->notify('foo');
+  $db = $db->notify(foo => 'bar');
+
+Notify a channel.
+
 =head2 ping
 
   my $bool = $db->ping;
@@ -212,6 +332,13 @@ still executed in a blocking manner.
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
+=head2 unlisten
+
+  $db = $db->unlisten('foo');
+  $db = $db->unlisten('*');
+
+Unsubscribe from a channel, C<*> can be used to unsubscribe from all channels.
+
 =head1 BUGS
 
 Report any issues on the public bugtracker.
@@ -230,3 +357,22 @@ the terms of the Artistic License version 2.0.
 =head1 SEE ALSO
 
 L<Mojo::SQLite>
+
+=cut
+
+__DATA__
+
+@@ pubsub
+-- 1 down
+drop table mojo_pubsub;
+
+-- 1 up
+drop table if exists mojo_pubsub;
+
+create table mojo_pubsub (
+  id integer primary key autoincrement,
+  channel text not null,
+  pid integer not null,
+  payload text
+);
+create index channel_idx on mojo_pubsub (channel);

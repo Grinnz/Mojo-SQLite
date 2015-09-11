@@ -7,6 +7,7 @@ use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
+use Mojo::SQLite::PubSub;
 use Scalar::Util 'weaken';
 use URI;
 use URI::QueryParam;
@@ -29,6 +30,11 @@ has options => sub {
     RaiseError          => 1,
     sqlite_unicode      => 1,
   };
+};
+has pubsub => sub {
+  my $pubsub = Mojo::SQLite::PubSub->new(sqlite => shift);
+  weaken $pubsub->{sqlite};
+  return $pubsub;
 };
 
 sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
@@ -139,6 +145,19 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   $db->query('select * from names')
     ->hashes->map(sub { $_->{name} })->join("\n")->say;
 
+  # Send and receive notifications non-blocking
+  $sql->pubsub->listen(foo => sub {
+    my ($pubsub, $payload) = @_;
+    say "foo: $payload";
+    $pubsub->notify(bar => $payload);
+  });
+  $sql->pubsub->listen(bar => sub {
+    my ($pubsub, $payload) = @_;
+    say "bar: $payload";
+  });
+  $sql->pubsub->notify(foo => 'SQLite rocks!');
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
 =head1 DESCRIPTION
 
 L<Mojo::SQLite> is a tiny wrapper around L<DBD::SQLite> that makes
@@ -246,6 +265,23 @@ L<DBI/"ATTRIBUTES COMMON TO ALL HANDLES"> and
 L<DBD::SQLite/"DRIVER PRIVATE ATTRIBUTES"> for more information on available
 options.
 
+=head2 pubsub
+
+  my $pubsub = $sql->pubsub;
+  $sql       = $sql->pubsub(Mojo::SQLite::PubSub->new);
+
+L<Mojo::SQLite::PubSub> object you can use to send and receive notifications
+very efficiently, by sharing a single database connection with many consumers.
+
+  # Subscribe to a channel
+  $sql->pubsub->listen(news => sub {
+    my ($pubsub, $payload) = @_;
+    say "Received: $payload";
+  });
+
+  # Notify a channel
+  $sql->pubsub->notify(news => 'SQLite rocks!');
+
 =head1 METHODS
 
 L<Mojo::SQLite> inherits all methods from L<Mojo::EventEmitter> and implements
@@ -350,6 +386,8 @@ This is the class hierarchy of the L<Mojo::SQLite> distribution.
 =item * L<Mojo::SQLite::Database>
 
 =item * L<Mojo::SQLite::Migrations>
+
+=item * L<Mojo::SQLite::PubSub>
 
 =item * L<Mojo::SQLite::Results>
 
