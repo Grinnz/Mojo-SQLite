@@ -12,6 +12,8 @@ our $VERSION = '0.014';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
+use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
+
 has 'dbh';
 has 'pubsub_poll_interval' => 0.5;
 has 'sqlite';
@@ -65,6 +67,7 @@ sub is_listening { !!keys %{shift->{listen} || {}} }
 sub listen {
   my ($self, $name) = @_;
 
+  warn qq{$self listening on channel "$name"\n} if DEBUG;
   $self->{listen}{$name}++;
   $self->_init_pubsub;
   $self->_watch;
@@ -75,13 +78,10 @@ sub listen {
 sub notify {
   my ($self, $name, $payload) = @_;
 
+  $payload //= '';
+  warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
   $self->_init_pubsub;
-  if (defined $payload) {
-    $self->query('insert into mojo_pubsub (channel, payload)
-      values (?, ?)', $name, $payload);
-  } else {
-    $self->query('insert into mojo_pubsub (channel) values (?)', $name);
-  }
+  $self->query('insert into mojo_pubsub (channel, payload) values (?, ?)', $name, $payload);
   $self->_notifications;
 
   return $self;
@@ -128,9 +128,10 @@ sub query {
 sub unlisten {
   my ($self, $name) = @_;
 
+  warn qq{$self is no longer listening on channel "$name"\n} if DEBUG;
   $name eq '*' ? delete $self->{listen} : delete $self->{listen}{$name};
   $self->_unwatch unless $self->is_listening;
-  
+
   return $self;
 }
 
@@ -162,6 +163,7 @@ sub _notifications {
     my $notifies = $self->dbh->selectall_arrayref("select id, channel, payload from mojo_pubsub
       where id > ? order by id asc", { Slice => {} }, $self->{pubsub_last_id});
     if ($notifies and @$notifies) {
+      do { my $count = @$notifies; warn qq{$self has received $count notifications\n} } if DEBUG;
       $self->{pubsub_last_id} = $notifies->[-1]{id};
       foreach my $notify (@$notifies) {
         $self->emit(notification => @{$notify}{qw(channel payload)})
@@ -174,6 +176,7 @@ sub _notifications {
 sub _unwatch {
   my $self = shift;
   return unless delete $self->{watching};
+  warn qq{$self is no longer watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
 }
@@ -181,6 +184,7 @@ sub _unwatch {
 sub _watch {
   my $self = shift;
   return if $self->{watching} || $self->{watching}++;
+  warn qq{$self now watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
   my $interval = $self->pubsub_poll_interval;
   $self->{pubsub_timer} = Mojo::IOLoop->recurring($interval => sub {

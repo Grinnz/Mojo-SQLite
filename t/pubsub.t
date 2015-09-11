@@ -20,8 +20,11 @@ $sql->pubsub->listen(
   pstest => sub {
     my ($pubsub, $payload) = @_;
     push @test, $payload;
-    Mojo::IOLoop->next_tick(sub { $pubsub->sqlite->db->notify(pstest => 'stop') });
-    Mojo::IOLoop->stop if $payload eq 'stop';
+    if ($payload eq 'stop') {
+      Mojo::IOLoop->stop;
+    } else {
+      Mojo::IOLoop->next_tick(sub { $pubsub->sqlite->db->notify(pstest => 'stop') });
+    }
   }
 );
 $db->on(notification => sub { push @all, [@_[1, 2]] });
@@ -54,7 +57,7 @@ is_deeply \@all, [['pstest', ''], ['pstest', 'first'], ['pstest', 'second']],
 # Reconnect while listening
 $sql = Mojo::SQLite->new->from_filename($tempfile);
 my @dbhs = @test = ();
-$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, $db->dbh });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->listen(pstest => sub { push @test, pop });
 ok $dbhs[0], 'database handle';
 is_deeply \@test, [], 'no messages';
@@ -71,7 +74,7 @@ is_deeply \@test, [], 'no messages';
 # Reconnect while not listening
 $sql = Mojo::SQLite->new->from_filename($tempfile);
 @dbhs = @test = ();
-$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, $db->dbh });
+$sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->notify(pstest => 'fail');
 ok $dbhs[0], 'database handle';
 is_deeply \@test, [], 'no messages';
