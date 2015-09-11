@@ -360,6 +360,13 @@ still executed in a blocking manner.
 
 Unsubscribe from a channel, C<*> can be used to unsubscribe from all channels.
 
+=head1 DEBUGGING
+
+You can set the C<MOJO_PUBSUB_DEBUG> environment variable to get some advanced
+diagnostics information printed to C<STDERR>.
+
+  MOJO_PUBSUB_DEBUG=1
+
 =head1 BUGS
 
 Report any issues on the public bugtracker.
