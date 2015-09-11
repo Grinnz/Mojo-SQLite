@@ -38,7 +38,7 @@ sub _db {
   weaken $self;
   $db->on(
     notification => sub {
-      my ($db, $name, $pid, $payload) = @_;
+      my ($db, $name, $payload) = @_;
       for my $cb (@{$self->{chans}{$name}}) { $self->$cb($payload) }
     }
   );

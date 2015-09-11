@@ -159,21 +159,21 @@ Mojo::IOLoop->delay(
     Mojo::IOLoop->next_tick(sub { $db2->notify(dbtest => 'foo') });
   },
   sub {
-    my ($delay, $name, $pid, $payload, $name2, $pid2, $payload2) = @_;
-    push @notifications, [$name, $pid, $payload], [$name2, $pid2, $payload2];
+    my ($delay, $name, $payload, $name2, $payload2) = @_;
+    push @notifications, [$name, $payload], [$name2, $payload2];
     $db->once(notification => $delay->begin);
     $db2->unlisten('dbtest');
     Mojo::IOLoop->next_tick(sub { $sql->db->notify('dbtest') });
   },
   sub {
-    my ($delay, $name, $pid, $payload) = @_;
-    push @notifications, [$name, $pid, $payload];
+    my ($delay, $name, $payload) = @_;
+    push @notifications, [$name, $payload];
     $db2->listen('dbtest2')->once(notification => $delay->begin);
     Mojo::IOLoop->next_tick(sub { $db2->notify(dbtest2 => 'bar') });
   },
   sub {
-    my ($delay, $name, $pid, $payload) = @_;
-    push @notifications, [$name, $pid, $payload];
+    my ($delay, $name, $payload) = @_;
+    push @notifications, [$name, $payload];
     $db2->once(notification => $delay->begin);
     my $tx = $db2->begin;
     Mojo::IOLoop->next_tick(
@@ -184,27 +184,22 @@ Mojo::IOLoop->delay(
     );
   },
   sub {
-    my ($delay, $name, $pid, $payload) = @_;
-    push @notifications, [$name, $pid, $payload];
+    my ($delay, $name, $payload) = @_;
+    push @notifications, [$name, $payload];
   }
 )->wait;
 ok !$db->unlisten('dbtest')->is_listening, 'not listening';
 ok !$db2->unlisten('*')->is_listening,     'not listening';
 is $notifications[0][0], 'dbtest',  'right channel name';
-ok $notifications[0][1], 'has process id';
-is $notifications[0][2], 'foo',     'right payload';
+is $notifications[0][1], 'foo',     'right payload';
 is $notifications[1][0], 'dbtest',  'right channel name';
-ok $notifications[1][1], 'has process id';
-is $notifications[1][2], 'foo',     'right payload';
+is $notifications[1][1], 'foo',     'right payload';
 is $notifications[2][0], 'dbtest',  'right channel name';
-ok $notifications[2][1], 'has process id';
-is $notifications[2][2], '',        'no payload';
+is $notifications[2][1], '',        'no payload';
 is $notifications[3][0], 'dbtest2', 'right channel name';
-ok $notifications[3][1], 'has process id';
-is $notifications[3][2], 'bar',     'no payload';
+is $notifications[3][1], 'bar',     'no payload';
 is $notifications[4][0], 'dbtest2', 'right channel name';
-ok $notifications[4][1], 'has process id';
-is $notifications[4][2], 'baz',     'no payload';
+is $notifications[4][1], 'baz',     'no payload';
 is $notifications[5], undef, 'no more notifications';
 
 # Stop listening for all notifications

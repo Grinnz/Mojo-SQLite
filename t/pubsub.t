@@ -24,7 +24,7 @@ $sql->pubsub->listen(
     Mojo::IOLoop->stop if $payload eq 'stop';
   }
 );
-$db->on(notification => sub { push @all, [@_[1, 3]] });
+$db->on(notification => sub { push @all, [@_[1, 2]] });
 $sql->db->notify(pstest => 'test');
 Mojo::IOLoop->start;
 is_deeply \@test, ['test', 'stop'], 'right messages';
@@ -38,7 +38,7 @@ $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { $db = pop });
 @all = @test = ();
 my $first  = $sql->pubsub->listen(pstest => sub { push @test, pop });
 my $second = $sql->pubsub->listen(pstest => sub { push @test, pop });
-$db->on(notification => sub { push @all, [@_[1, 3]] });
+$db->on(notification => sub { push @all, [@_[1, 2]] });
 $sql->pubsub->notify('pstest')->notify(pstest => 'first');
 is_deeply \@test, ['', '', 'first', 'first'], 'right messages';
 is_deeply \@all, [['pstest', ''], ['pstest', 'first']], 'right notifications';

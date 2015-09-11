@@ -77,10 +77,10 @@ sub notify {
 
   $self->_init_pubsub;
   if (defined $payload) {
-    $self->query('insert into mojo_pubsub (channel, pid, payload)
-      values (?, ?, ?)', $name, $$, $payload);
+    $self->query('insert into mojo_pubsub (channel, payload)
+      values (?, ?)', $name, $payload);
   } else {
-    $self->query('insert into mojo_pubsub (channel, pid) values (?, ?)', $name, $$);
+    $self->query('insert into mojo_pubsub (channel) values (?)', $name);
   }
   $self->_notifications;
 
@@ -159,12 +159,12 @@ sub _notifications {
   my $self = shift;
   if ($self->is_listening) {
     $self->_init_pubsub;
-    my $notifies = $self->dbh->selectall_arrayref("select id, channel, pid, payload from mojo_pubsub
+    my $notifies = $self->dbh->selectall_arrayref("select id, channel, payload from mojo_pubsub
       where id > ? order by id asc", { Slice => {} }, $self->{pubsub_last_id});
     if ($notifies and @$notifies) {
       $self->{pubsub_last_id} = $notifies->[-1]{id};
       foreach my $notify (@$notifies) {
-        $self->emit(notification => @{$notify}{qw(channel pid payload)})
+        $self->emit(notification => @{$notify}{qw(channel payload)})
           if exists $self->{listen}{$notify->{channel}};
       }
     }
@@ -227,7 +227,7 @@ notifications.
 =head2 notification
 
   $db->on(notification => sub {
-    my ($db, $name, $pid, $payload) = @_;
+    my ($db, $name, $payload) = @_;
     ...
   });
 
@@ -389,7 +389,6 @@ drop table if exists mojo_pubsub;
 create table mojo_pubsub (
   id integer primary key autoincrement,
   channel text not null,
-  pid integer not null,
   payload text not null default ''
 );
 create index channel_idx on mojo_pubsub (channel);
