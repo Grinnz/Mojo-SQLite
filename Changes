@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.015     2015-09-12 00:13:53 EDT
+  - Minor pubsub fixes
+
 0.014     2015-09-11 20:25:25 EDT
   - Add Mojo::SQLite::PubSub and listen/notify implementation in Mojo::SQLite::Database
 
