@@ -34,8 +34,9 @@ sub _db {
 
   return $self->{db} if $self->{db};
 
-  my $db = $self->{db} =
-    $self->sqlite->db(notification_poll_interval => $self->poll_interval);
+  my %options;
+  $options{notification_poll_interval} = $self->poll_interval if defined $self->poll_interval;
+  my $db = $self->{db} = $self->sqlite->db(%options);
   weaken $db->{sqlite};
   weaken $self;
   $db->on(
