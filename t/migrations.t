@@ -3,11 +3,15 @@ use Mojo::Base -strict;
 use Test::More;
 
 use File::Spec::Functions 'catfile';
+use File::Temp;
 use FindBin;
 use Mojo::SQLite;
 
+my $tempdir = File::Temp->newdir;
+my $tempfile = catfile($tempdir, 'test.db');
+
 # Clean up before start
-my $sql = Mojo::SQLite->new;
+my $sql = Mojo::SQLite->new->from_filename($tempfile);
 $sql->db->query('drop table if exists mojo_migrations');
 
 # Defaults
@@ -86,7 +90,7 @@ is_deeply $sql->db->query('select * from migration_test_two')->hash,
 is $sql->migrations->migrate(0)->active, 0, 'active version is 0';
 
 # Bad and concurrent migrations
-my $sql2 = Mojo::SQLite->new;
+my $sql2 = Mojo::SQLite->new->from_filename($tempfile);
 $sql2->migrations->name('migrations_test2')
   ->from_file(catfile($FindBin::Bin, 'migrations', 'test.sql'));
 is $sql2->migrations->latest, 4, 'latest version is 4';
