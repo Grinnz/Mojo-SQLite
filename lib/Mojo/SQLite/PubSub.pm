@@ -76,9 +76,11 @@ Mojo::SQLite::PubSub - Publish/Subscribe
 =head1 DESCRIPTION
 
 L<Mojo::SQLite::PubSub> is a scalable implementation of the publish/subscribe
-pattern used by L<Mojo::SQLite>. As SQLite has no notification system, it is
-implemented via event loop polling. It allows many consumers to share the same
-database connection, to avoid many common scalability problems.
+pattern used by L<Mojo::SQLite>. It allows many consumers to share the same
+database connection, to avoid many common scalability problems. As SQLite has
+no notification system, it is implemented via event loop polling in
+L<Mojo::SQLite::Database>, using automatically created tables prefixed with
+C<mojo_pubsub>.
 
 =head1 EVENTS
 
@@ -105,7 +107,8 @@ L<Mojo::SQLite::PubSub> implements the following attributes.
   $pubsub      = $pubsub->poll_interval(0.25);
 
 Interval in seconds to poll for notifications from L</"notify">, passed along
-to L<Mojo::SQLite::Database/"notification_poll_interval">.
+to L<Mojo::SQLite::Database/"notification_poll_interval">. Note that lower
+values will increase pubsub responsiveness as well as CPU utilization.
 
 =head2 sqlite
 

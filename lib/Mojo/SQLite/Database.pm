@@ -219,7 +219,7 @@ sub _unwatch {
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
   local $@;
-  eval { $self->query('delete from mojo_pubsub_listener where id=?', $self->{listener_id}) };
+  eval { $self->query('delete from mojo_pubsub_listener where id=?', delete $self->{listener_id}) };
 }
 
 sub _watch {
@@ -254,10 +254,6 @@ Mojo::SQLite::Database - Database
 
 L<Mojo::SQLite::Database> is a container for L<DBD::SQLite> database handles
 used by L<Mojo::SQLite>.
-
-As SQLite has no notification system, the L</"listen">, L</"notify">, and
-L</"unlisten"> methods are implemented using event loop polling on internally
-managed tables prefixed with C<mojo_pubsub>.
 
 =head1 EVENTS
 
@@ -300,8 +296,7 @@ L<DBD::SQLite> database handle used for all queries.
   $db          = $db->notification_poll_interval(1);
 
 Interval in seconds to poll for notifications from L</"notify">, defaults to
-C<0.5>. Note that lower values will increase pubsub responsiveness as well as
-CPU utilization.
+C<0.5>.
 
 =head2 sqlite
 
