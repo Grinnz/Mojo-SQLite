@@ -16,7 +16,7 @@ sub new {
 
 sub DESTROY {
   my $self = shift;
-  return unless my $sth = $self->{sth};
+  return() unless my $sth = $self->{sth};
   $sth->finish unless --$sth->{private_mojo_refcount};
 }
 

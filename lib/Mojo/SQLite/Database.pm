@@ -34,9 +34,9 @@ sub DESTROY {
   my $self = shift;
 
   # Supported on Perl 5.14+
-  return if defined ${^GLOBAL_PHASE} && ${^GLOBAL_PHASE} eq 'DESTRUCT';
+  return() if defined ${^GLOBAL_PHASE} && ${^GLOBAL_PHASE} eq 'DESTRUCT';
 
-  return unless (my $sql = $self->sqlite) && (my $dbh = $self->dbh);
+  return() unless (my $sql = $self->sqlite) && (my $dbh = $self->dbh);
   $sql->_enqueue($dbh);
 }
 
@@ -185,7 +185,7 @@ sub _cleanup_pubsub {
 
 sub _init_pubsub {
   my $self = shift;
-  return if $self->{init_pubsub} || $self->{init_pubsub}++;
+  return $self if $self->{init_pubsub} || $self->{init_pubsub}++;
   $self->sqlite->migrations->name('pubsub')->from_data->migrate;
   $self->_cleanup_pubsub;
 }
@@ -214,7 +214,7 @@ sub _notifications {
 
 sub _unwatch {
   my $self = shift;
-  return unless delete $self->{watching};
+  return $self unless delete $self->{watching};
   warn qq{$self is no longer watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
@@ -224,7 +224,7 @@ sub _unwatch {
 
 sub _watch {
   my $self = shift;
-  return if $self->{watching} || $self->{watching}++;
+  return $self if $self->{watching} || $self->{watching}++;
   warn qq{$self now watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
   my $interval = $self->notification_poll_interval;
