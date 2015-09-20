@@ -10,5 +10,3 @@ requires 'URI'         => '1.69';
 requires 'URI::file'   => '4.21';
 requires 'URI::QueryParam' => '1.69';
 test_requires 'Test::More' => '0.88';
-author_requires 'Test::Pod'           => '1.14';
-author_requires 'Test::Pod::Coverage' => '1.04';
