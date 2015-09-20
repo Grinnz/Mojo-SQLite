@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.017     2015-09-20 17:24:44 EDT
   - Fix parsing of options from connection strings
   - Allow passing a hashref of options in from_filename
 
