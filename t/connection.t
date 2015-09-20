@@ -7,7 +7,7 @@ use URI::QueryParam;
 
 # Defaults
 my $sql = Mojo::SQLite->new;
-like $sql->dsn,    qr/^dbi:SQLite:uri=file:/, 'right data source';
+like $sql->dsn,    qr/^dbi:SQLite:dbname=/, 'right data source';
 my $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,
@@ -19,7 +19,7 @@ is_deeply $sql->options, $options, 'right options';
 
 # Minimal connection string with file
 $sql = Mojo::SQLite->new('test.db');
-is $sql->dsn, 'dbi:SQLite:uri=file:test.db', 'right data source';
+is $sql->dsn, 'dbi:SQLite:dbname=test.db', 'right data source';
 $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,
@@ -31,7 +31,7 @@ is_deeply $sql->options, $options, 'right options';
 
 # Minimal connection string with in-memory database and option
 $sql = Mojo::SQLite->new(':memory:?PrintError=1');
-is $sql->dsn, 'dbi:SQLite:uri=file::memory:', 'right data source';
+is $sql->dsn, 'dbi:SQLite:dbname=:memory:', 'right data source';
 $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,
@@ -45,7 +45,7 @@ is_deeply $sql->options, $options, 'right options';
 my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix')
   ->Mojo::Base::tap(query_form_hash => {PrintError => 1, RaiseError => 0});
 $sql = Mojo::SQLite->new($uri);
-is $sql->dsn, 'dbi:SQLite:uri=file:/tmp/sqlite.db%3F%23', 'right data source';
+is $sql->dsn, 'dbi:SQLite:dbname=/tmp/sqlite.db?#', 'right data source';
 $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,
@@ -57,7 +57,7 @@ is_deeply $sql->options, $options, 'right options';
 
 # Connection string with lots of zeros
 $sql = Mojo::SQLite->new('0?RaiseError=0');
-is $sql->dsn, 'dbi:SQLite:uri=file:0', 'right data source';
+is $sql->dsn, 'dbi:SQLite:dbname=0', 'right data source';
 $options = {
   AutoCommit          => 1,
   AutoInactiveDestroy => 1,
@@ -68,11 +68,8 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Parse filename
-{
-  local %URI::file::OS_CLASS = (); # so filename will be parsed as unix
-  $sql = Mojo::SQLite->new->from_filename('/foo#/bar?.db');
-  is $sql->dsn, 'dbi:SQLite:uri=file:/foo%23/bar%3F.db', 'right data source';
-}
+$sql = Mojo::SQLite->new->from_filename('/foo#/bar?.db');
+is $sql->dsn, 'dbi:SQLite:dbname=/foo#/bar?.db', 'right data source';
 
 # Invalid connection string
 eval { Mojo::SQLite->new('http://localhost:3000/test') };

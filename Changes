@@ -1,4 +1,6 @@
 {{$NEXT}}
+  - Use URI::db to parse connection strings to allow sqlite: connection strings
+  - Allow passing OS to use for parsing file: URL in from_string
 
 0.015     2015-09-12 00:13:53 EDT
   - Minor pubsub fixes

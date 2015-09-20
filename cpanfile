@@ -1,12 +1,12 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
-requires 'DBI'         => '1.633';
-requires 'DBD::SQLite' => '1.48';
+requires 'DBI'             => '1.633';
+requires 'DBD::SQLite'     => '1.48';
 requires 'File::Spec::Functions';
 requires 'File::Temp';
-requires 'Mojolicious' => '6.14';
+requires 'Mojolicious'     => '6.14';
 requires 'Scalar::Util';
-requires 'URI'         => '1.69';
-requires 'URI::file'   => '4.21';
+requires 'URI'             => '1.69';
+requires 'URI::db'         => '0.15';
 requires 'URI::QueryParam' => '1.69';
 test_requires 'Test::More' => '0.88';

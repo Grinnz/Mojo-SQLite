@@ -10,12 +10,12 @@ use Mojo::SQLite::Migrations;
 use Mojo::SQLite::PubSub;
 use Scalar::Util 'weaken';
 use URI;
+use URI::db;
 use URI::QueryParam;
-use URI::file;
 
 our $VERSION = '0.016';
 
-has dsn => sub { _dsn_from_path(shift->_tempfile_path) };
+has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
 has max_connections => 5;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
@@ -48,30 +48,33 @@ sub db {
   return Mojo::SQLite::Database->new(dbh => $self->_dequeue, sqlite => $self);
 }
 
-sub from_filename { shift->from_string(URI::file->new(shift)) }
+sub from_filename { shift->from_string(_url_from_file(shift)) }
 
 sub from_string {
-  my ($self, $str) = @_;
-
-  # Parse URI
+  my ($self, $str, $os) = @_;
   return $self unless $str;
-  my $uri = URI->new($str);
-  my $scheme = $uri->scheme // '';
-  my $host = $scheme eq 'file' ? ($uri->host // '') : '';
-  croak qq{Invalid SQLite connection string "$str"}
-    unless ($scheme eq '' or $scheme eq 'file')
-    and ($host eq '' or $host eq 'localhost');
-  
-  # Database file
-  my $path = $uri->path;
-  $path = $self->_tempfile_path if $path eq ':temp:';
-  my $dsn = _dsn_from_path($path);
+  my $url = URI->new($str);
 
   # Options
-  my $options = $uri->query_form_hash;
+  my $options = $url->query_form_hash;
   @{$self->options}{keys %$options} = values %$options;
 
-  return $self->dsn($dsn);
+  # Parse URL based on scheme
+  $url->scheme('file') unless $url->has_recognized_scheme;
+  if ($url->scheme eq 'file') {
+    $url = _url_from_file(defined $os ? $url->file($os) : $url->file);
+  } elsif ($url->scheme ne 'db') {
+    $url = URI::db->new($url);
+  }
+
+  croak qq{Invalid SQLite connection string "$str"}
+    unless $url->has_recognized_engine and $url->canonical_engine eq 'sqlite'
+    and (($url->host // '') eq '' or $url->host eq 'localhost');
+  
+  # Temp database file
+  $url->dbname($self->_tempfile) if $url->dbname eq ':temp:';
+
+  return $self->dsn($url->dbi_dsn);
 }
 
 sub _dequeue {
@@ -86,8 +89,6 @@ sub _dequeue {
   return $dbh;
 }
 
-sub _dsn_from_path { 'dbi:SQLite:uri=' . _uri_from_path(shift) }
-
 sub _enqueue {
   my ($self, $dbh) = @_;
   my $queue = $self->{queue} ||= [];
@@ -95,13 +96,9 @@ sub _enqueue {
   shift @$queue while @$queue > $self->max_connections;
 }
 
-sub _tempfile_path {
-  my $self = shift;
-  my $filename = catfile($self->{tempdir} = File::Temp->newdir, 'sqlite.db');
-  return URI::file->new($filename)->path;
-};
+sub _tempfile { catfile(shift->{tempdir} = File::Temp->newdir, 'sqlite.db') }
 
-sub _uri_from_path { URI->new->Mojo::Base::tap(scheme => 'file')->Mojo::Base::tap(path => shift) }
+sub _url_from_file { URI::db->new->Mojo::Base::tap(engine => 'sqlite')->Mojo::Base::tap(dbname => shift) }
 
 1;
 
@@ -114,7 +111,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   use Mojo::SQLite;
 
   # Create a table
-  my $sql = Mojo::SQLite->new->from_filename($filename);
+  my $sql = Mojo::SQLite->new('sqlite:test.db');
   $sql->db->query('create table names (id integer primary key autoincrement, name text)');
 
   # Insert a few rows
@@ -172,7 +169,7 @@ gracefully by holding on to them only for short amounts of time.
   use Mojo::SQLite;
 
   helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new->from_filename(shift->config('sqlite_filename')) };
+    sub { state $sql = Mojo::SQLite->new('sqlite:sqlite.db') };
 
   get '/' => sub {
     my $c  = shift;
@@ -240,7 +237,7 @@ L<Mojo::SQLite> implements the following attributes.
   my $dsn = $sql->dsn;
   $sql    = $sql->dsn('dbi:SQLite:uri=file:foo.db');
 
-Data source name, defaults to a C<dbi:SQLite:uri=> followed by a URI to a
+Data source name, defaults to C<dbi:SQLite:dbname=> followed by a path to a
 temporary file.
 
 =head2 max_connections
@@ -300,7 +297,8 @@ the following new ones.
 =head2 new
 
   my $sql = Mojo::SQLite->new;
-  my $sql = Mojo::SQLite->new('file:test.db');
+  my $sql = Mojo::SQLite->new('file:test.db);
+  my $sql = Mojo::SQLite->new('sqlite:test.db');
 
 Construct a new L<Mojo::SQLite> object and parse connection string with
 L</"from_string"> if necessary.
@@ -330,7 +328,7 @@ gracefully by holding on to it only for short amounts of time.
   $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db');
 
 Parse database filename directly. Unlike L</"from_string">, the filename is
-parsed as a local filename and not a URI, and L</"options"> must be specified
+parsed as a local filename and not a URL, and L</"options"> must be specified
 separately.
 
   # Absolute filename
@@ -350,16 +348,23 @@ separately.
 
 =head2 from_string
 
+  $sql = $sql->from_string('test.db');
   $sql = $sql->from_string('file:test.db');
+  $sql = $sql->from_string('file:///C:/foo/bar.db');
+  $sql = $sql->from_string('sqlite:C:%5Cfoo%5Cbar.db');
 
 Parse configuration from connection string. Connection strings are parsed as
-URIs, so you should construct them using a module like L<Mojo::URL> or
-L<URI::file>. L<URI::file> is recommended for portability on non-Unix-like
-systems. The scheme and hostname are optional, but if specified must be C<file>
-and C<localhost> respectively. If the connection string has a query string, it
-will be parsed and applied to L</"options">.
+URLs, so you should construct them using a module like L<Mojo::URL>,
+L<URI::file>, or L<URI::db>. For portability on non-Unix-like systems, either
+construct the URL with the C<sqlite> scheme, or use L<URI::file/"new"> to
+construct a URL with the C<file> scheme. A URL with no scheme will be parsed
+as a C<file> URL. If specified, the hostname must be C<localhost>. If the URL
+has a query string, it will be parsed and applied to L</"options">.
 
   # Absolute filename
+  $sql->from_string('sqlite:////home/fred/data.db');
+  $sql->from_string('sqlite://localhost//home/fred/data.db');
+  $sql->from_string('sqlite:/home/fred/data.db');
   $sql->from_string('file:///home/fred/data.db');
   $sql->from_string('file://localhost/home/fred/data.db');
   $sql->from_string('file:/home/fred/data.db');
@@ -368,12 +373,14 @@ will be parsed and applied to L</"options">.
   $sql->from_string('/home/fred/data.db');
 
   # Relative to current directory
+  $sql->from_string('sqlite:data.db');
   $sql->from_string('file:data.db');
   $sql->from_string('data.db');
 
-  # Connection string must be a valid URI
-  $sql->from_string(Mojo::URL->new->path($unix_filename));
-  $sql->from_string(URI::file->new($filename));
+  # Connection string must be a valid URL
+  $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename));
+  $sql->from_string(URI::db->new->Mojo::Base::tap(engine => 'sqlite')->Mojo::Base::tap(dbname => $filename));
+  $sql->from_string(URI::file->new($filename, 'win32'));
 
   # Temporary file database (default)
   $sql->from_string(':temp:');
@@ -383,6 +390,7 @@ will be parsed and applied to L</"options">.
 
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
+  $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
   $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form_hash => {PrintError => 1}));
 
 =head1 REFERENCE

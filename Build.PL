@@ -91,7 +91,7 @@ EOW
         "Scalar::Util" => 0,
         "URI" => "1.69",
         "URI::QueryParam" => "1.69",
-        "URI::file" => "4.21",
+        "URI::db" => "0.15",
         "perl" => "5.010001"
       },
       "test_requires" => {
