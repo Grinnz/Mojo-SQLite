@@ -248,16 +248,18 @@ separately.
 
   $sql = $sql->from_string('test.db');
   $sql = $sql->from_string('file:test.db');
-  $sql = $sql->from_string('file:///C:/foo/bar.db');
+  $sql = $sql->from_string('file:///C:/foo/bar.db', 'win32');
   $sql = $sql->from_string('sqlite:C:%5Cfoo%5Cbar.db');
 
 Parse configuration from connection string. Connection strings are parsed as
 URLs, so you should construct them using a module like L<Mojo::URL>,
 L<URI::file>, or L<URI::db>. For portability on non-Unix-like systems, either
 construct the URL with the C<sqlite> scheme, or use L<URI::file/"new"> to
-construct a URL with the C<file> scheme. A URL with no scheme will be parsed
-as a C<file> URL. If specified, the hostname must be C<localhost>. If the URL
-has a query string, it will be parsed and applied to L</"options">.
+construct a URL with the C<file> scheme. If passed, the second argument will
+dictate the operating system to assume when parsing a C<file> URL. A URL with
+no scheme will be parsed as a C<file> URL. If specified, the hostname must be
+C<localhost>. If the URL has a query string, it will be parsed and applied to
+L</"options">.
 
   # Absolute filename
   $sql->from_string('sqlite:////home/fred/data.db');
@@ -278,7 +280,7 @@ has a query string, it will be parsed and applied to L</"options">.
   # Connection string must be a valid URL
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename));
   $sql->from_string(URI::db->new->Mojo::Base::tap(engine => 'sqlite')->Mojo::Base::tap(dbname => $filename));
-  $sql->from_string(URI::file->new($filename, 'win32'));
+  $sql->from_string(URI::file->new($filename, 'win32'), 'win32');
 
   # Temporary file database (default)
   $sql->from_string(':temp:');
