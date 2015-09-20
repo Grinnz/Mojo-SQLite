@@ -30,7 +30,7 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Minimal connection string with in-memory database and option
-$sql = Mojo::SQLite->new(':memory:?PrintError=1');
+$sql = Mojo::SQLite->new('sqlite::memory:?PrintError=1');
 is $sql->dsn, 'dbi:SQLite:dbname=:memory:', 'right data source';
 $options = {
   AutoCommit          => 1,
@@ -42,7 +42,7 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
-my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix')
+my $uri = URI::file->new('/tmp/sqlite.db?#')
   ->Mojo::Base::tap(query_form_hash => {PrintError => 1, RaiseError => 0});
 $sql = Mojo::SQLite->new($uri);
 is $sql->dsn, 'dbi:SQLite:dbname=/tmp/sqlite.db?#', 'right data source';

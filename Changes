@@ -1,9 +1,8 @@
 {{$NEXT}}
-  - Mention specifying OS for file: URLs in documentation
+  - Fix parsing of options from connection strings
 
 0.016     2015-09-20 16:51:53 EDT
   - Use URI::db to parse connection strings to allow sqlite: connection strings
-  - Allow passing OS to use for parsing file: URL in from_string
 
 0.015     2015-09-12 00:13:53 EDT
   - Minor pubsub fixes

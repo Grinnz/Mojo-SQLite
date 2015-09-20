@@ -51,18 +51,19 @@ sub db {
 sub from_filename { shift->from_string(_url_from_file(shift)) }
 
 sub from_string {
-  my ($self, $str, $os) = @_;
+  my ($self, $str) = @_;
   return $self unless $str;
   my $url = URI->new($str);
 
   # Options
   my $options = $url->query_form_hash;
+  $url->query_param_delete($_) for $url->query_param;
   @{$self->options}{keys %$options} = values %$options;
 
   # Parse URL based on scheme
   $url->scheme('file') unless $url->has_recognized_scheme;
   if ($url->scheme eq 'file') {
-    $url = _url_from_file(defined $os ? $url->file($os) : $url->file);
+    $url = _url_from_file($url->file);
   } elsif ($url->scheme ne 'db') {
     $url = URI::db->new($url);
   }
@@ -73,7 +74,7 @@ sub from_string {
   
   # Temp database file
   $url->dbname($self->_tempfile) if $url->dbname eq ':temp:';
-
+  
   return $self->dsn($url->dbi_dsn);
 }
 
@@ -350,18 +351,16 @@ separately.
 
   $sql = $sql->from_string('test.db');
   $sql = $sql->from_string('file:test.db');
-  $sql = $sql->from_string('file:///C:/foo/bar.db', 'win32');
+  $sql = $sql->from_string('file:///C:/foo/bar.db');
   $sql = $sql->from_string('sqlite:C:%5Cfoo%5Cbar.db');
 
 Parse configuration from connection string. Connection strings are parsed as
 URLs, so you should construct them using a module like L<Mojo::URL>,
 L<URI::file>, or L<URI::db>. For portability on non-Unix-like systems, either
 construct the URL with the C<sqlite> scheme, or use L<URI::file/"new"> to
-construct a URL with the C<file> scheme. If passed, the second argument will
-dictate the operating system to assume when parsing a C<file> URL. A URL with
-no scheme will be parsed as a C<file> URL. If specified, the hostname must be
-C<localhost>. If the URL has a query string, it will be parsed and applied to
-L</"options">.
+construct a URL with the C<file> scheme. A URL with no scheme will be parsed as
+a C<file> URL. If specified, the hostname must be C<localhost>. If the URL has
+a query string, it will be parsed and applied to L</"options">.
 
   # Absolute filename
   $sql->from_string('sqlite:////home/fred/data.db');
@@ -382,7 +381,7 @@ L</"options">.
   # Connection string must be a valid URL
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename));
   $sql->from_string(URI::db->new->Mojo::Base::tap(engine => 'sqlite')->Mojo::Base::tap(dbname => $filename));
-  $sql->from_string(URI::file->new($filename, 'win32'), 'win32');
+  $sql->from_string(URI::file->new($filename));
 
   # Temporary file database (default)
   $sql->from_string(':temp:');
