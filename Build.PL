@@ -92,6 +92,7 @@ EOW
         "URI" => "1.69",
         "URI::QueryParam" => "1.69",
         "URI::db" => "0.15",
+        "URI::file" => "4.21",
         "perl" => "5.010001"
       },
       "test_requires" => {
