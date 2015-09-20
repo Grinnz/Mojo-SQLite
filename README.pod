@@ -256,8 +256,9 @@ URLs, so you should construct them using a module like L<Mojo::URL>,
 L<URI::file>, or L<URI::db>. For portability on non-Unix-like systems, either
 construct the URL with the C<sqlite> scheme, or use L<URI::file/"new"> to
 construct a URL with the C<file> scheme. A URL with no scheme will be parsed as
-a C<file> URL. If specified, the hostname must be C<localhost>. If the URL has
-a query string, it will be parsed and applied to L</"options">.
+a C<file> URL, and C<file> URLs are parsed according to the current operating
+system. If specified, the hostname must be C<localhost>. If the URL has a query
+string, it will be parsed and applied to L</"options">.
 
   # Absolute filename
   $sql->from_string('sqlite:////home/fred/data.db');
