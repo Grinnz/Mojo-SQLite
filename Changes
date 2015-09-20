@@ -1,5 +1,6 @@
 {{$NEXT}}
   - Fix parsing of options from connection strings
+  - Allow passing a hashref of options in from_filename
 
 0.016     2015-09-20 16:51:53 EDT
   - Use URI::db to parse connection strings to allow sqlite: connection strings

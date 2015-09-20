@@ -223,11 +223,11 @@ gracefully by holding on to it only for short amounts of time.
 
 =head2 from_filename
 
-  $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db');
+  $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db', $options);
 
 Parse database filename directly. Unlike L</"from_string">, the filename is
-parsed as a local filename and not a URL, and L</"options"> must be specified
-separately.
+parsed as a local filename and not a URL. A hashref of L</"options"> may be
+passed as the second argument.
 
   # Absolute filename
   $sql->from_filename('/home/fred/data.db');
@@ -242,7 +242,7 @@ separately.
   my $db = $sql->from_filename(':memory:')->db;
 
   # Additional options
-  $sql->from_filename($filename)->tap(sub { $_->options->{PrintError} = 1 });
+  $sql->from_filename($filename, { PrintError => 1 });
 
 =head2 from_string
 

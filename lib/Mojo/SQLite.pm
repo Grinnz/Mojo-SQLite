@@ -48,7 +48,7 @@ sub db {
   return Mojo::SQLite::Database->new(dbh => $self->_dequeue, sqlite => $self);
 }
 
-sub from_filename { shift->from_string(_url_from_file(shift)) }
+sub from_filename { shift->from_string(_url_from_file(shift, shift)) }
 
 sub from_string {
   my ($self, $str) = @_;
@@ -99,7 +99,13 @@ sub _enqueue {
 
 sub _tempfile { catfile(shift->{tempdir} = File::Temp->newdir, 'sqlite.db') }
 
-sub _url_from_file { URI::db->new->Mojo::Base::tap(engine => 'sqlite')->Mojo::Base::tap(dbname => shift) }
+sub _url_from_file {
+  my $url = URI::db->new;
+  $url->engine('sqlite');
+  $url->dbname(shift);
+  if (my $options = shift) { $url->query_form_hash($options) }
+  return $url;
+}
 
 1;
 
@@ -326,11 +332,11 @@ gracefully by holding on to it only for short amounts of time.
 
 =head2 from_filename
 
-  $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db');
+  $sql = $sql->from_filename('C:\\Documents and Settings\\foo & bar.db', $options);
 
 Parse database filename directly. Unlike L</"from_string">, the filename is
-parsed as a local filename and not a URL, and L</"options"> must be specified
-separately.
+parsed as a local filename and not a URL. A hashref of L</"options"> may be
+passed as the second argument.
 
   # Absolute filename
   $sql->from_filename('/home/fred/data.db');
@@ -345,7 +351,7 @@ separately.
   my $db = $sql->from_filename(':memory:')->db;
 
   # Additional options
-  $sql->from_filename($filename)->tap(sub { $_->options->{PrintError} = 1 });
+  $sql->from_filename($filename, { PrintError => 1 });
 
 =head2 from_string
 

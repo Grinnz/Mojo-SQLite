@@ -68,8 +68,16 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Parse filename
-$sql = Mojo::SQLite->new->from_filename('/foo#/bar?.db');
+$sql = Mojo::SQLite->new->from_filename('/foo#/bar?.db', {PrintError => 1});
 is $sql->dsn, 'dbi:SQLite:dbname=/foo#/bar?.db', 'right data source';
+$options = {
+  AutoCommit          => 1,
+  AutoInactiveDestroy => 1,
+  PrintError          => 1,
+  RaiseError          => 1,
+  sqlite_unicode      => 1,
+};
+is_deeply $sql->options, $options, 'right options';
 
 # Invalid connection string
 eval { Mojo::SQLite->new('http://localhost:3000/test') };
