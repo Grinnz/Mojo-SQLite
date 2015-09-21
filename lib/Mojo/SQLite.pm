@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Carp 'croak';
 use DBI;
 use File::Spec::Functions 'catfile';
-use File::Temp;
+use File::Temp 'tempdir';
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
 use Mojo::SQLite::PubSub;
@@ -97,7 +97,7 @@ sub _enqueue {
   shift @$queue while @$queue > $self->max_connections;
 }
 
-sub _tempfile { catfile(shift->{tempdir} = File::Temp->newdir, 'sqlite.db') }
+sub _tempfile { catfile(shift->{tempdir} = tempdir(CLEANUP => 1), 'sqlite.db') }
 
 sub _url_from_file {
   my $url = URI::db->new;
@@ -215,9 +215,9 @@ need to reuse the filename. A temporary directory allows SQLite to create
 L<additional temporary files|https://www.sqlite.org/tempfiles.html> safely.
 
   use File::Spec::Functions 'catfile';
-  use File::Temp;
+  use File::Temp 'tempdir';
   use Mojo::SQLite;
-  my $tempdir = File::Temp->newdir; # Deleted when object goes out of scope
+  my $tempdir = tempdir(CLEANUP => 1); # Deleted when program exits
   my $tempfile = catfile $tempdir, 'sqlite.db';
   my $sql = Mojo::SQLite->new->from_filename($tempfile);
 

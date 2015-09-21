@@ -3,11 +3,11 @@ use Mojo::Base -strict;
 use Test::More;
 
 use File::Spec::Functions 'catfile';
-use File::Temp;
+use File::Temp 'tempdir';
 use FindBin;
 use Mojo::SQLite;
 
-my $tempdir = File::Temp->newdir;
+my $tempdir = tempdir(CLEANUP => 1);
 my $tempfile = catfile($tempdir, 'test.db');
 
 # Clean up before start

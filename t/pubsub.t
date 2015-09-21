@@ -5,12 +5,12 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 
 use File::Spec::Functions 'catfile';
-use File::Temp;
+use File::Temp 'tempdir';
 use Mojo::IOLoop;
 use Mojo::SQLite;
 use Scalar::Util 'weaken';
 
-my $tempdir = File::Temp->newdir;
+my $tempdir = tempdir(CLEANUP => 1);
 my $tempfile = catfile($tempdir, 'test.db');
 
 my @all_dbs;

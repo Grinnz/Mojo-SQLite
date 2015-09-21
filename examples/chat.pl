@@ -1,9 +1,9 @@
 use Mojolicious::Lite;
 use Mojo::SQLite;
 use File::Spec::Functions 'catfile';
-use File::Temp;
+use File::Temp 'tempdir';
 
-my $tempdir = File::Temp->newdir;
+my $tempdir = tempdir(CLEANUP => 1);
 my $tempfile = catfile($tempdir, 'chat.db');
 
 helper sqlite => sub { state $sql = Mojo::SQLite->new->from_filename($tempfile) };
