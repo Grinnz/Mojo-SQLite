@@ -71,4 +71,6 @@ is_deeply $db->query('select * from results_test where name = ?', 'tx3')
 undef $results;
 $db->query('drop table results_test');
 
+undef $db;
+
 done_testing();
