@@ -236,4 +236,7 @@ Mojo::IOLoop->start;
 like $fail, qr/does_not_exist/, 'right error';
 is $db->dbh->errstr, $fail, 'same error';
 
+undef $db;
+undef $db2;
+
 done_testing();

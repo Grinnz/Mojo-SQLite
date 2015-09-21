@@ -122,7 +122,9 @@ is_deeply \@test, ['first'], 'right messages';
   is_deeply \@test, ['first', 'third'], 'right messages';
 };
 
+
 # Make sure nothing is listening
-defined $_ and $_->unlisten('*') for @all_dbs;
+undef $db;
+$_->unlisten('*') for grep { defined } @all_dbs;
 
 done_testing();
