@@ -42,9 +42,13 @@ $options = {
 is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
-my $uri = URI::file->new('/tmp/sqlite.db?#')
+my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix')
   ->Mojo::Base::tap(query_form_hash => {PrintError => 1, RaiseError => 0});
-$sql = Mojo::SQLite->new($uri);
+{
+  # Force unix interpretation
+  local %URI::file::OS_CLASS = ();
+  $sql = Mojo::SQLite->new($uri);
+}
 is $sql->dsn, 'dbi:SQLite:dbname=/tmp/sqlite.db?#', 'right data source';
 $options = {
   AutoCommit          => 1,

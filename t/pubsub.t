@@ -8,12 +8,17 @@ use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::IOLoop;
 use Mojo::SQLite;
+use Scalar::Util 'weaken';
 
 my $tempdir = File::Temp->newdir;
 my $tempfile = catfile($tempdir, 'test.db');
 
+my @all_dbs;
+my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
+
 # Notifications with event loop
 my $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->pubsub->on(reconnect => $on_reconnect);
 my ($db, @all, @test);
 $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { $db = pop });
 $sql->pubsub->listen(
@@ -36,6 +41,7 @@ is_deeply \@all, [['pstest', 'test'], ['pstest', 'stop']],
 
 # Unsubscribe
 $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->pubsub->on(reconnect => $on_reconnect);
 $db = undef;
 $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { $db = pop });
 @all = @test = ();
@@ -56,6 +62,7 @@ is_deeply \@all, [['pstest', ''], ['pstest', 'first'], ['pstest', 'second']],
 
 # Reconnect while listening
 $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->pubsub->on(reconnect => $on_reconnect);
 my @dbhs = @test = ();
 $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->listen(pstest => sub { push @test, pop });
@@ -73,6 +80,7 @@ is_deeply \@test, [], 'no messages';
 
 # Reconnect while not listening
 $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->pubsub->on(reconnect => $on_reconnect);
 @dbhs = @test = ();
 $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->notify(pstest => 'fail');
@@ -91,6 +99,7 @@ is_deeply \@test, [], 'no messages';
 
 # Fork-safety
 $sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->pubsub->on(reconnect => $on_reconnect);
 @dbhs = @test = ();
 $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
 $sql->pubsub->listen(pstest => sub { push @test, pop });
@@ -112,5 +121,8 @@ is_deeply \@test, ['first'], 'right messages';
   ok !$dbhs[2], 'no database handle';
   is_deeply \@test, ['first', 'third'], 'right messages';
 };
+
+# Make sure nothing is listening
+defined $_ and $_->unlisten('*') for @all_dbs;
 
 done_testing();

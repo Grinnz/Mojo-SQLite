@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Fixes for tests under win32
 
 0.017     2015-09-20 17:24:44 EDT
   - Fix parsing of options from connection strings
