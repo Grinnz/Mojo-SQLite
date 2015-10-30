@@ -59,6 +59,15 @@ $sql->pubsub->unlisten(pstest => $second)->notify(pstest => 'third');
 is_deeply \@test, ['', '', 'first', 'first', 'second'], 'right messages';
 is_deeply \@all, [['pstest', ''], ['pstest', 'first'], ['pstest', 'second']],
   'right notifications';
+@all = @test = ();
+my $third  = $sql->pubsub->listen(pstest => sub { push @test, pop });
+my $fourth = $sql->pubsub->listen(pstest => sub { push @test, pop });
+$sql->pubsub->notify(pstest => 'first');
+is_deeply \@test, ['first', 'first'], 'right messages';
+$sql->pubsub->notify(pstest => 'second');
+is_deeply \@test, ['first', 'first', 'second', 'second'], 'right messages';
+$sql->pubsub->unlisten('pstest')->notify(pstest => 'third');
+is_deeply \@test, ['first', 'first', 'second', 'second'], 'right messages';
 
 # Reconnect while listening
 $sql = Mojo::SQLite->new->from_filename($tempfile);

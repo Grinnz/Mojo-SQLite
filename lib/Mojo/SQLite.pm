@@ -230,7 +230,7 @@ following new ones.
 
   $sql->on(connection => sub {
     my ($sql, $dbh) = @_;
-    ...
+    $dbh->do('pragma journal_size_limit=1000000');
   });
 
 Emitted when a new database connection has been established.
