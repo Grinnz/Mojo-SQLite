@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.019     2015-11-25 22:45:25 EST
   - Added support for removing all subscribers of a channel at once in unlisten
     method in Mojo::SQLite::PubSub
   - Mojo::SQLite::Migrations now throws an error if the currently active
