@@ -26,11 +26,13 @@ sub arrays { _collect(@{shift->sth->fetchall_arrayref}) }
 
 sub columns { shift->sth->{NAME} }
 
-sub last_insert_id { shift->{last_insert_id} // 0 }
+sub finish { shift->sth->finish }
 
 sub hash { (shift->sth->fetchrow_hashref)[0] }
 
 sub hashes { _collect(@{shift->sth->fetchall_arrayref({})}) }
+
+sub last_insert_id { shift->{last_insert_id} // 0 }
 
 sub rows { shift->sth->rows }
 
@@ -84,7 +86,8 @@ Construct a new L<Mojo::SQLite::Results> object.
 
   my $array = $results->array;
 
-Fetch next row from L</"sth"> and return it as an array reference.
+Fetch next row from L</"sth"> and return it as an array reference. Note that
+L</"finish"> needs to be called if you are not fetching all the possible rows.
 
   # Process one row at a time
   while (my $next = $results->array) {
@@ -107,11 +110,19 @@ containing array references.
 
 Return column names as an array reference.
 
+=head2 finish
+
+  $results->finish;
+
+Indicate that you are finished with L</"sth"> and will not be fetching all the
+remaining rows.
+
 =head2 hash
 
   my $hash = $results->hash;
 
-Fetch next row from L</"sth"> and return it as a hash reference.
+Fetch next row from L</"sth"> and return it as a hash reference. Note that
+L</"finish"> needs to be called if you are not fetching all the possible rows.
 
   # Process one row at a time
   while (my $next = $results->hash) {

@@ -4,7 +4,7 @@
       "Dan Book <dbook@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.040, CPAN::Meta::Converter version 2.150005",
+   "generated_by" : "Dist::Zilla version 5.041, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "artistic_2"
    ],

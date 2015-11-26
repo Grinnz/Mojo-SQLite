@@ -3,6 +3,7 @@
     method in Mojo::SQLite::PubSub
   - Mojo::SQLite::Migrations now throws an error if the currently active
     version is greater than the latest version
+  - Added finish method to Mojo::SQLite::Results
 
 0.018     2015-09-21 13:44:30 EDT
   - Fixes for tests under win32
