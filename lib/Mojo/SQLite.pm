@@ -13,7 +13,7 @@ use URI;
 use URI::db;
 use URI::QueryParam;
 
-our $VERSION = '0.019';
+our $VERSION = '0.020';
 
 has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
 has max_connections => 5;
