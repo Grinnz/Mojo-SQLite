@@ -4,7 +4,7 @@
       "Dan Book <dbook@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.041, CPAN::Meta::Converter version 2.150005",
+   "generated_by" : "Dist::Zilla version 5.043, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "artistic_2"
    ],
@@ -39,7 +39,7 @@
       "runtime" : {
          "requires" : {
             "Carp" : "0",
-            "DBD::SQLite" : "1.48",
+            "DBD::SQLite" : "1.50",
             "DBI" : "1.633",
             "File::Spec::Functions" : "0",
             "File::Temp" : "0",
@@ -61,27 +61,27 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "0.019"
+         "version" : "0.020"
       }
    },
    "release_status" : "stable",
@@ -96,7 +96,7 @@
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
       }
    },
-   "version" : "0.019",
+   "version" : "0.020",
    "x_contributors" : [
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>"

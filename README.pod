@@ -29,6 +29,10 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   # Insert another row and return the generated id
   say $db->query('insert into names (name) values (?)', 'Daniel')
     ->last_insert_id;
+  
+  # JSON roundtrip
+  say $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand('foo')->hash->{foo}{bar};
 
   # Select one row at a time
   my $results = $db->query('select * from names');

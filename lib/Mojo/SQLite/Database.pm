@@ -2,8 +2,10 @@ package Mojo::SQLite::Database;
 use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
+use DBI 'SQL_VARCHAR';
 use DBD::SQLite;
 use Mojo::IOLoop;
+use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Scalar::Util 'weaken';
@@ -154,8 +156,14 @@ sub _bind_params {
   return $sth unless @_;
   foreach my $i (0..$#_) {
     my $param = $_[$i];
-    if (ref $param eq 'HASH' && exists $param->{type} && exists $param->{value}) {
-      $sth->bind_param($i+1, $param->{value}, $param->{type});
+    if (ref $param eq 'HASH') {
+      if (exists $param->{type} && exists $param->{value}) {
+        $sth->bind_param($i+1, $param->{value}, $param->{type});
+      } elsif (exists $param->{json}) {
+        $sth->bind_param($i+1, to_json($param->{json}), SQL_VARCHAR);
+      } else {
+        croak qq{Unknown parameter hashref (no "type"/"value" or "json")};
+      }
     } else {
       $sth->bind_param($i+1, $param);
     }
@@ -378,15 +386,18 @@ Check database connection.
   my $results = $db->query('select * from foo');
   my $results = $db->query('insert into foo values (?, ?, ?)', @values);
   my $results = $db->query('select ? as img', {type => SQL_BLOB, value => slurp 'img.jpg'});
+  my $results = $db->query('select ? as foo', {json => {bar => 'baz'}});
 
 Execute a blocking statement and return a L<Mojo::SQLite::Results> object with
 the results. The L<DBD::SQLite> statement handle will be automatically reused
 when it is not active anymore, to increase the performance of future queries.
 Pass a hash reference containing C<type> and C<value> elements to specify the
 bind type of the parameter, using types from L<DBI/"DBI Constants">; see
-L<DBD::SQLite/"Blobs"> and the subsequent section for more information. You can
-also append a callback for API compatibility with L<Mojo::Pg>; the query is
-still executed in a blocking manner.
+L<DBD::SQLite/"Blobs"> and the subsequent section for more information. A hash
+reference containing a C<json> element will encode the parameter as
+L<JSON text|http://sqlite.org/json1.html>. You can also append a callback for
+API compatibility with L<Mojo::Pg>; the query is still executed in a blocking
+manner.
 
   $db->query('insert into foo values (?, ?, ?)' => @values => sub {
     my ($db, $err, $results) = @_;

@@ -5,6 +5,7 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use Mojo::JSON 'true';
 use DBI ':sql_types';
 use Mojo::Util 'encode';
 
@@ -135,6 +136,34 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
     ->hash, {foo => '☃♥'}, 'right structure';
   is_deeply $db->query('select ? as foo', {type => SQL_BLOB, value => encode 'UTF-8', '☃♥'})
     ->hash, {foo => encode 'UTF-8', '☃♥'}, 'right structure';
+}
+
+# JSON
+{
+  my $db = $sql->db;
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand('foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand('foo')->array, [{bar => 'baz'}], 'right structure';
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand('foo')->hashes->first, {foo => {bar => 'baz'}}, 'right structure';
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand('foo')->arrays->first, [{bar => 'baz'}], 'right structure';
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})->hash,
+    {foo => '{"bar":"baz"}'}, 'right structure';
+  is_deeply $db->query('select ? as foo', {json => \1})
+    ->expand('foo')->hashes->first, {foo => true}, 'right structure';
+  is_deeply $db->query('select ? as foo', undef)->expand('foo')->hash,
+    {foo => undef}, 'right structure';
+  is_deeply $db->query('select ? as foo', undef)->expand('foo')->array, [undef],
+    'right structure';
+  my $results = $db->query('select ? as foo', undef);
+  is_deeply $results->expand('foo')->array, [undef], 'right structure';
+  is_deeply $results->expand('foo')->array, undef, 'no more results';
+  is_deeply $db->query('select ? as unicode', {json => {'☃' => '♥'}})
+    ->expand('unicode')->hash, {unicode => {'☃' => '♥'}}, 'right structure';
+  is_deeply $db->query("select json_object('☃', ?) as unicode",
+    '♥')->expand('unicode')->hash, {unicode => {'☃' => '♥'}}, 'right structure';
 }
 
 # Fork-safety
