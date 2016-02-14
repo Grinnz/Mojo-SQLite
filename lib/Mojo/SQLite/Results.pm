@@ -138,6 +138,9 @@ containing array references.
 
 Return column names as an array reference.
 
+  # Names of all columns
+  say for @{$results->columns};
+
 =head2 expand
 
   $results = $results->expand(json => 'some_json');

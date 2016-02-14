@@ -52,7 +52,7 @@ sub _db {
       eval { $self->_db };
     }
   );
-  $db->listen($_) for keys %{$self->{chans}}, 'mojo_sqlite_pubsub';
+  $db->listen($_) for keys %{$self->{chans}}, 'mojo.pubsub';
   $self->emit(reconnect => $db);
 
   return $db;
