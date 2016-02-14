@@ -13,7 +13,7 @@ use URI;
 use URI::db;
 use URI::QueryParam;
 
-our $VERSION = '0.020';
+our $VERSION = '0.021';
 
 has 'auto_migrate';
 has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
