@@ -145,7 +145,8 @@ Return column names as an array reference.
 
 Decode specified fields from a particular format for all rows. Currently only
 the C<json> text format is recognized. The names must exactly match the column
-names as returned by L</"columns">.
+names as returned by L</"columns">; it is recommended to use explicit aliases
+in the query for consistent column names.
 
   # Expand JSON
   $results->expand(json => 'json_field')->hashes->map(sub { $_->{foo}{bar} })->join("\n")->say;

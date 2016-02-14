@@ -157,9 +157,10 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
     {foo => undef}, 'right structure';
   is_deeply $db->query('select ? as foo', undef)->expand(json => 'foo')->array,
     [undef], 'right structure';
-  my $results = $db->query('select ? as foo', undef);
-  is_deeply $results->expand(json => 'foo')->array, [undef], 'right structure';
-  is_deeply $results->expand(json => 'foo')->array, undef, 'no more results';
+  my $results = $db->query('select ?', undef);
+  my $name = $results->columns->[0];
+  is_deeply $results->expand(json => $name)->array, [undef], 'right structure';
+  is_deeply $results->expand(json => $name)->array, undef, 'no more results';
   is_deeply $db->query('select ? as unicode', {json => {'☃' => '♥'}})
     ->expand(json => 'unicode')->hash, {unicode => {'☃' => '♥'}}, 'right structure';
   is_deeply $db->query("select json_object('☃', ?) as unicode", '♥')
