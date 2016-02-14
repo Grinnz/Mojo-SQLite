@@ -27,7 +27,14 @@ sub arrays { _collect($_[0]->_expand(@{$_[0]->sth->fetchall_arrayref})) }
 
 sub columns { shift->sth->{NAME} }
 
-sub expand { my $self = shift; ++$self->{expand}{$_} for @_; $self }
+sub expand {
+  my ($self, %expands) = @_;
+  for my $type (keys %expands) {
+    my @cols = ref $expands{$type} eq 'ARRAY' ? @{$expands{$type}} : $expands{$type};
+    ++$self->{expand}{$type}{$_} for @cols;
+  }
+  return $self;
+}
 
 sub finish { shift->sth->finish }
 
@@ -51,10 +58,10 @@ sub _expand {
   for my $data (@data) {
     if (ref $data eq 'HASH') {
       $data->{$_} = from_json $data->{$_}
-        for grep { $data->{$_} and $self->{expand}{$_} } keys %$data;
+        for grep { $data->{$_} and $self->{expand}{json}{$_} } keys %$data;
     } else {
       $data->[$_] = from_json $data->[$_]
-        for grep { $data->[$_] and $self->{expand}{$self->columns->[$_]} } 0..$#$data;
+        for grep { $data->[$_] and $self->{expand}{json}{$self->columns->[$_]} } 0..$#$data;
     }
   }
   
@@ -133,13 +140,15 @@ Return column names as an array reference.
 
 =head2 expand
 
-  $results = $results->expand('some_json','other_json');
+  $results = $results->expand(json => 'some_json');
+  $results = $results->expand(json => ['some_json','other_json']);
 
-Decode specified fields as JSON text for all rows. The names must exactly match
-the column names as returned by L</"columns">.
+Decode specified fields from a particular format for all rows. Currently only
+the C<json> text format is recognized. The names must exactly match the column
+names as returned by L</"columns">.
 
   # Expand JSON
-  $results->expand('json_field')->hashes->map(sub { $_->{foo}{bar} })->join("\n")->say;
+  $results->expand(json => 'json_field')->hashes->map(sub { $_->{foo}{bar} })->join("\n")->say;
 
 =head2 finish
 

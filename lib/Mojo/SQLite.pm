@@ -141,7 +141,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   
   # JSON roundtrip
   say $db->query('select ? as foo', {json => {bar => 'baz'}})
-    ->expand('foo')->hash->{foo}{bar};
+    ->expand(json => 'foo')->hash->{foo}{bar};
 
   # Select one row at a time
   my $results = $db->query('select * from names');
