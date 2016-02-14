@@ -153,8 +153,7 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   }
 
   # Select all rows
-  $db->query('select * from names')
-    ->hashes->map(sub { $_->{name} })->join("\n")->say;
+  say $_->{name} for $db->query('select * from names')->hashes->each;
 
   # Send and receive notifications non-blocking
   $sql->pubsub->listen(foo => sub {
@@ -182,13 +181,12 @@ gracefully by holding on to them only for short amounts of time.
   use Mojolicious::Lite;
   use Mojo::SQLite;
 
-  helper sqlite =>
-    sub { state $sql = Mojo::SQLite->new('sqlite:sqlite.db') };
+  helper sqlite => sub { state $sql = Mojo::SQLite->new('sqlite:sqlite.db') };
 
   get '/' => sub {
     my $c  = shift;
     my $db = $c->sqlite->db;
-    $c->render(json => $db->query('select datetime("now","localtime") as time')->hash);
+    $c->render(json => $db->query('select datetime("now","localtime") as now')->hash);
   };
 
   app->start;
