@@ -164,6 +164,12 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
     ->expand(json => 'unicode')->hash, {unicode => {'☃' => '♥'}}, 'right structure';
   is_deeply $db->query("select json_object('☃', ?) as unicode", '♥')
     ->expand(json => 'unicode')->hash, {unicode => {'☃' => '♥'}}, 'right structure';
+  is_deeply $db->query('select ? as foo, ? as bar', {json => {baz => 'foo'}},
+    {json => {baz => 'bar'}})->expand(json => 'foo')->hash,
+    {foo => {baz => 'foo'}, bar => '{"baz":"bar"}'}, 'right structure';
+  is_deeply $db->query('select ? as foo, ? as bar', {json => {baz => 'foo'}},
+    {json => {baz => 'bar'}})->expand(json => ['foo','bar'])->hash,
+    {foo => {baz => 'foo'}, bar => {baz => 'bar'}}, 'right structure';
 }
 
 # Fork-safety
