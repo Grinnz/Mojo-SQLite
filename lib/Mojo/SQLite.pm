@@ -11,7 +11,6 @@ use Mojo::SQLite::PubSub;
 use Scalar::Util 'weaken';
 use URI;
 use URI::db;
-use URI::QueryParam;
 
 our $VERSION = '0.021';
 
@@ -57,9 +56,9 @@ sub from_string {
   my $url = URI->new($str);
 
   # Options
-  my $options = $url->query_form_hash;
-  $url->query_param_delete($_) for $url->query_param;
-  @{$self->options}{keys %$options} = values %$options;
+  my %options = $url->query_form;
+  $url->query(undef);
+  @{$self->options}{keys %options} = values %options;
 
   # Parse URL based on scheme
   $url->scheme('file') unless $url->has_recognized_scheme;
@@ -106,7 +105,7 @@ sub _url_from_file {
   my $url = URI::db->new;
   $url->engine('sqlite');
   $url->dbname(shift);
-  if (my $options = shift) { $url->query_form_hash($options) }
+  if (my $options = shift) { $url->query_form($options) }
   return $url;
 }
 
@@ -412,7 +411,7 @@ string, it will be parsed and applied to L</"options">.
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
-  $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form_hash => {PrintError => 1}));
+  $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form => {PrintError => 1}));
 
 =head1 REFERENCE
 

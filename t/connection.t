@@ -3,7 +3,6 @@ use Mojo::Base -strict;
 use Test::More;
 use Mojo::SQLite;
 use URI::file;
-use URI::QueryParam;
 
 # Defaults
 my $sql = Mojo::SQLite->new;
@@ -43,7 +42,7 @@ is_deeply $sql->options, $options, 'right options';
 
 # Connection string with absolute filename and options
 my $uri = URI::file->new('/tmp/sqlite.db?#', 'unix')
-  ->Mojo::Base::tap(query_form_hash => {PrintError => 1, RaiseError => 0});
+  ->Mojo::Base::tap(query_form => {PrintError => 1, RaiseError => 0});
 {
   # Force unix interpretation
   local %URI::file::OS_CLASS = ();

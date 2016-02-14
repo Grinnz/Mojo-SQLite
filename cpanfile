@@ -9,5 +9,4 @@ requires 'Scalar::Util';
 requires 'URI'             => '1.69';
 requires 'URI::db'         => '0.15';
 requires 'URI::file'       => '4.21';
-requires 'URI::QueryParam' => '1.69';
 test_requires 'Test::More' => '0.88';

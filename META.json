@@ -46,7 +46,6 @@
             "Mojolicious" : "6.14",
             "Scalar::Util" : "0",
             "URI" : "1.69",
-            "URI::QueryParam" : "1.69",
             "URI::db" : "0.15",
             "URI::file" : "4.21",
             "perl" : "5.010001"
@@ -61,27 +60,27 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "0.020"
+         "version" : "0.021"
       }
    },
    "release_status" : "stable",
@@ -96,7 +95,7 @@
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
       }
    },
-   "version" : "0.020",
+   "version" : "0.021",
    "x_contributors" : [
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>"

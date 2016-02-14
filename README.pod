@@ -300,7 +300,7 @@ string, it will be parsed and applied to L</"options">.
   # Additional options
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
-  $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form_hash => {PrintError => 1}));
+  $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form => {PrintError => 1}));
 
 =head1 REFERENCE
 
