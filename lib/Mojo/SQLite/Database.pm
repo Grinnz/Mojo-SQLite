@@ -134,6 +134,12 @@ sub query {
   return $self;
 }
 
+sub tables {
+  my %names; # Deduplicate returned temporary table indexes
+  return [grep { !$names{$_}++ }
+    shift->dbh->tables(undef, undef, undef, 'TABLE,VIEW,LOCAL TEMPORARY')];
+}
+
 sub unlisten {
   my ($self, $name) = @_;
 
@@ -404,6 +410,19 @@ manner.
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+=head2 tables
+
+  my $tables = $db->tables;
+
+Return table and view names for this database, that are visible to the current
+user and not internal, as an array reference. Names will be quoted and prefixed
+by a schema name of C<"main"> for standard tables, C<"temp"> for temporary
+tables, and the appropriate schema name for
+L<attached databases|http://sqlite.org/lang_attach.html>.
+
+  # Names of all tables
+  say for @{$db->tables};
 
 =head2 unlisten
 

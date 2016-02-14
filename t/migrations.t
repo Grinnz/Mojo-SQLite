@@ -20,19 +20,11 @@ is $sql->migrations->latest, 0,            'latest version is 0';
 is $sql->migrations->active, 0,            'active version is 0';
 
 # Create migrations table
-ok !$sql->db->query(
-  "select exists(
-     select 1 from sqlite_master
-     where type = 'table' and name = 'mojo_migrations'
-   )"
-)->array->[0], 'migrations table does not exist';
+ok !(grep {/^"main"."mojo_migrations"$/i} @{$sql->db->tables}),
+  'migrations table does not exist';
 is $sql->migrations->migrate->active, 0, 'active version is 0';
-ok $sql->db->query(
-  "select exists(
-     select 1 from sqlite_master
-     where type = 'table' and name = 'mojo_migrations'
-   )"
-)->array->[0], 'migrations table exists';
+ok !!(grep {/^"main"."mojo_migrations"$/i} @{$sql->db->tables}),
+  'migrations table exists';
 
 # Migrations from DATA section
 is $sql->migrations->from_data->latest, 0, 'latest version is 0';
@@ -75,6 +67,10 @@ EOF
 is $sql->migrations->latest, 10, 'latest version is 10';
 is $sql->migrations->active, 0,  'active version is 0';
 is $sql->migrations->migrate->active, 10, 'active version is 10';
+ok !!(grep {/^"main"."migration_test_one"$/i} @{$sql->db->tables}),
+  'first table exists';
+ok !!(grep {/^"main"."migration_test_two"$/i} @{$sql->db->tables}),
+  'second table exists';
 is_deeply $sql->db->query('select * from migration_test_one')->hash,
   {foo => 'works ♥'}, 'right structure';
 is $sql->migrations->migrate->active, 10, 'active version is 10';

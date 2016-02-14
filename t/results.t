@@ -18,6 +18,14 @@ my $sql = Mojo::SQLite->new;
   is $results->last_insert_id, 2, 'right last_insert_id';
   is $db->query('update results_test set name=name')->rows, 2, 'two rows affected';
 
+  # Tables
+  ok !!(grep {/^"main"."results_test"$/i} @{$db->tables}),
+    'results table exists';
+  ok !(grep {/^"main"."sqlite_master"$/i} @{$db->tables}),
+    'internal tables are hidden';
+  ok !(grep {/^"temp"."sqlite_temp_master"$/i} @{$db->tables}),
+    'internal tables are hidden';
+
   # Result methods
   is_deeply $db->query('select * from results_test')->columns, ['id', 'name'],
     'right structure';
