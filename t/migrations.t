@@ -107,6 +107,27 @@ is_deeply $sql2->db->query('select * from migration_test_three')
 is $sql->migrations->migrate(0)->active,  0, 'active version is 0';
 is $sql2->migrations->migrate(0)->active, 0, 'active version is 0';
 
+# Migrate automatically
+$sql = Mojo::SQLite->new->from_filename($tempfile);
+$sql->migrations->name('migrations_test')->from_string(<<EOF);
+-- 5 up
+create table if not exists migration_test_six (foo text);
+-- 6 up
+insert into migration_test_six values ('works!');
+-- 5 down
+drop table if exists migration_test_six;
+-- 6 down
+delete from migration_test_six;
+EOF
+$sql->auto_migrate(1)->db;
+is $sql->migrations->active, 6, 'active version is 6';
+is_deeply $sql->db->query('select * from migration_test_six')->hashes,
+  [{foo => 'works!'}], 'right structure';
+is $sql->migrations->migrate(5)->active, 5, 'active version is 5';
+is_deeply $sql->db->query('select * from migration_test_six')->hashes, [],
+  'right structure';
+is $sql->migrations->migrate(0)->active, 0, 'active version is 0';
+
 # Unknown version
 eval { $sql->migrations->migrate(23) };
 like $@, qr/Version 23 has no migration/, 'right error';

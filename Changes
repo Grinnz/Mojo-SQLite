@@ -2,6 +2,7 @@
   - Bump dependency on DBD::SQLite to 1.50 for JSON1 extension support
   - Add support for json parameters to query() in Mojo::SQLite::Database
   - Add expand() method to Mojo::SQLite::Results to decode json columns
+  - Add auto_migrate attribute to Mojo::SQLite (from Mojo::Pg)
 
 0.019     2015-11-25 22:45:25 EST
   - Added support for removing all subscribers of a channel at once in unlisten

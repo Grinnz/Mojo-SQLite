@@ -15,6 +15,7 @@ use URI::QueryParam;
 
 our $VERSION = '0.020';
 
+has 'auto_migrate';
 has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
 has max_connections => 5;
 has migrations      => sub {
@@ -86,6 +87,8 @@ sub _dequeue {
     $dbh->do('pragma journal_mode=WAL');
     $dbh->do('pragma synchronous=NORMAL');
   }
+  ++$self->{migrated} and $self->migrations->migrate
+    if !$self->{migrated} && $self->auto_migrate;
   $self->emit(connection => $dbh);
   return $dbh;
 }
@@ -242,6 +245,14 @@ Emitted when a new database connection has been established.
 =head1 ATTRIBUTES
 
 L<Mojo::SQLite> implements the following attributes.
+
+=head2 auto_migrate
+
+  my $bool = $sql->auto_migrate;
+  $sql     = $sql->auto_migrate($bool);
+
+Automatically migrate to the latest database schema with L</"migrations">, as
+soon as the first database connection has been established.
 
 =head2 dsn
 
