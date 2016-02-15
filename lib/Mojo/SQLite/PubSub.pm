@@ -3,7 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Scalar::Util 'weaken';
 
-our $VERSION = '0.021';
+our $VERSION = '0.022';
 
 has 'poll_interval';
 has 'sqlite';
