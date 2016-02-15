@@ -40,7 +40,7 @@
          "requires" : {
             "Carp" : "0",
             "DBD::SQLite" : "1.50",
-            "DBI" : "1.633",
+            "DBI" : "1.627",
             "File::Spec::Functions" : "0",
             "File::Temp" : "0",
             "Mojolicious" : "6.14",

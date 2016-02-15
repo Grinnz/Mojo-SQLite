@@ -1,4 +1,6 @@
 {{$NEXT}}
+  - Lower dependency on DBI to 1.627
+  - Remove dependency on URI::QueryParam
 
 0.020     2016-02-14 17:53:55 EST
   - Bump dependency on DBD::SQLite to 1.50 for JSON1 extension support
