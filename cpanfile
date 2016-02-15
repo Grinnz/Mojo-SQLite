@@ -1,6 +1,6 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
-requires 'DBI'             => '1.633';
+requires 'DBI'             => '1.627';
 requires 'DBD::SQLite'     => '1.50'; # for json support
 requires 'File::Spec::Functions';
 requires 'File::Temp';
