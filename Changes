@@ -1,5 +1,7 @@
 {{$NEXT}}
-  - Improve expand performance slightly.
+  - Improve expand performance slightly
+  - Add support for encoding and decoding of JSON notifications
+  - Add json method to Mojo::SQLite::PubSub
 
 0.021     2016-02-15 01:58:40 EST
   - Lower dependency on DBI to 1.627

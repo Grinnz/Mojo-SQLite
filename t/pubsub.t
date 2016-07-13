@@ -7,6 +7,7 @@ use Test::More;
 use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::IOLoop;
+use Mojo::JSON 'true';
 use Mojo::SQLite;
 use Scalar::Util 'weaken';
 
@@ -39,6 +40,38 @@ my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
   is_deeply \@test, ['♥test♥', 'stop'], 'right messages';
   is_deeply \@all, [['pstest', '♥test♥'], ['pstest', 'stop']],
     'right notifications';
+}
+
+# JSON
+{
+  my $sql = Mojo::SQLite->new->from_filename($tempfile);
+  my (@json, @raw);
+  $sql->pubsub->json('pstest')->listen(
+    pstest => sub {
+      my ($pubsub, $payload) = @_;
+      push @json, $payload;
+      Mojo::IOLoop->stop if ref $payload eq 'HASH' && $payload->{msg} eq 'stop';
+    }
+  );
+  $sql->pubsub->listen(
+    pstest2 => sub {
+      my ($pubsub, $payload) = @_;
+      push @raw, $payload;
+    }
+  );
+  Mojo::IOLoop->next_tick(
+    sub {
+      $sql->db->notify(pstest => 'fail');
+      $sql->pubsub->notify('pstest')->notify(pstest => {msg => '♥works♥'})
+        ->notify(pstest => [1, 2, 3])->notify(pstest => true)
+        ->notify(pstest2 => '♥works♥')->notify(pstest => {msg => 'stop'});
+    }
+  );
+  Mojo::IOLoop->start;
+  is_deeply \@json,
+    [undef, undef, {msg => '♥works♥'}, [1, 2, 3], true, {msg => 'stop'}],
+    'right data structures';
+  is_deeply \@raw, ['♥works♥'], 'right messages';
 }
 
 # Unsubscribe

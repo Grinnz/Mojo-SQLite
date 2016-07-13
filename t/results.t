@@ -42,6 +42,26 @@ my $sql = Mojo::SQLite->new;
   is $sql->db->query('select * from results_test')->text, "1  foo\n2  bar\n",
     'right text';
 
+  # JSON
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand(json => 'foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
+  is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
+    ->expand(json => 'foo')->array, [{bar => 'baz'}], 'right structure';
+  my $hashes = [{foo => {one => 1}, bar => 'a'}, {foo => {two => 2}, bar => 'b'}];
+  is_deeply $db->query(
+    "select 'a' as bar, ? as foo
+     union all
+     select 'b' as bar, ? as foo", {json => {one => 1}},
+    {json => {two => 2}}
+  )->expand(json => 'foo')->hashes->to_array, $hashes, 'right structure';
+  my $arrays = [['a', {one => 1}], ['b', {two => 2}]];
+  is_deeply $db->query(
+    "select 'a' as bar, ? as foo
+     union all
+     select 'b' as bar, ? as foo", {json => {one => 1}},
+    {json => {two => 2}}
+  )->expand(json => 'foo')->arrays->to_array, $arrays, 'right structure';
+
   # Iterate
   $results = $db->query('select * from results_test');
   is_deeply $results->array, [1, 'foo'], 'right structure';
