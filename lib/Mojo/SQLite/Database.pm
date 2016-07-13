@@ -126,9 +126,9 @@ sub query {
 }
 
 sub tables {
+  my @tables = shift->dbh->tables(undef, undef, undef, 'TABLE,VIEW,LOCAL TEMPORARY');
   my %names; # Deduplicate returned temporary table indexes
-  return [grep { !$names{$_}++ }
-    shift->dbh->tables(undef, undef, undef, 'TABLE,VIEW,LOCAL TEMPORARY')];
+  return [grep { !$names{$_}++ } @tables];
 }
 
 sub unlisten {
@@ -243,6 +243,8 @@ sub _watch {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::SQLite::Database - Database
@@ -291,9 +293,12 @@ L<Mojo::SQLite::Database> implements the following attributes.
 =head2 dbh
 
   my $dbh = $db->dbh;
-  $db     = $db->dbh(DBI->new);
+  $db     = $db->dbh($dbh);
 
 L<DBD::SQLite> database handle used for all queries.
+
+  # Use DBI utility methods
+  my $quoted = $db->dbh->quote_identifier('foo.bar');
 
 =head2 notification_poll_interval
 
@@ -350,7 +355,7 @@ details.
 
   $db->disconnect;
 
-Disconnect L</"dbh"> and prevent it from getting cached again.
+Disconnect L</"dbh"> and prevent it from getting reused.
 
 =head2 is_listening
 
@@ -385,14 +390,17 @@ Check database connection.
   my $results = $db->query('select ? as img', {type => SQL_BLOB, value => slurp 'img.jpg'});
   my $results = $db->query('select ? as foo', {json => {bar => 'baz'}});
 
-Execute a blocking statement and return a L<Mojo::SQLite::Results> object with
-the results. The L<DBD::SQLite> statement handle will be automatically reused
-when it is not active anymore, to increase the performance of future queries.
-Pass a hash reference containing C<type> and C<value> elements to specify the
-bind type of the parameter, using types from L<DBI/"DBI Constants">; see
+Execute a blocking L<SQL|http://www.postgresql.org/docs/current/static/sql.html>
+statement and return a L<Mojo::SQLite::Results> object with the results. The
+L<DBD::SQLite> statement handle will be automatically reused when it is not
+active anymore, to increase the performance of future queries.
+Pass a hash
+reference containing C<type> and C<value> elements to specify the bind type of
+the parameter, using types from L<DBI/"DBI Constants">; see
 L<DBD::SQLite/"Blobs"> and the subsequent section for more information. A hash
 reference containing a C<json> element will encode the parameter as
-L<JSON text|http://sqlite.org/json1.html>. You can also append a callback for
+L<JSON text|http://sqlite.org/json1.html>.
+You can also append a callback for
 API compatibility with L<Mojo::Pg>; the query is still executed in a blocking
 manner.
 
@@ -401,6 +409,19 @@ manner.
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
+Hash reference arguments containing C<type> and C<value> elements will use the
+specified bind type for the parameter, using types from L<DBI/"DBI Constants">;
+see L<DBD::SQLite/"Blobs"> and the subsequent section for more information.
+
+Hash reference arguments containing a value named C<json> will be encoded to
+L<JSON text|http://sqlite.org/json1.html> with L<Mojo::JSON/"to_json">. To
+accomplish the reverse, you can use the method L<Mojo::SQLite::Results/"expand">
+to decode JSON text fields to Perl values with L<Mojo::JSON/"from_json">.
+
+  # "I ♥ SQLite!"
+  $db->query('select ? as foo', {json => {bar => 'I ♥ SQLite!'}})
+    ->expand(json => 'foo')->hash->{foo}{bar};
 
 =head2 tables
 

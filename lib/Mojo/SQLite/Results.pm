@@ -53,7 +53,7 @@ sub _collect { Mojo::Collection->new(@_) }
 sub _expand {
   my ($self, @rows) = @_;
   
-  return @rows unless $rows[0] and $self->{expand};
+  return @rows unless $self->{expand} and $rows[0];
   
   if (ref $rows[0] eq 'HASH') {
     my @json_names = keys %{$self->{expand}{json}};

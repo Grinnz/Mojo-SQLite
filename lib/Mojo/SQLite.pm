@@ -119,9 +119,20 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
   use Mojo::SQLite;
 
-  # Create a table
+  # Select the library version
   my $sql = Mojo::SQLite->new('sqlite:test.db');
-  $sql->db->query('create table names (id integer primary key autoincrement, name text)');
+  say $sql->db->query('select sqlite_version() as version')->hash->{version};
+
+  # Use migrations to create a table
+  $sql->migrations->name('my_names_app')->from_string(<<EOF)->migrate;
+  -- 1 up
+  create table names (id integer primary key autoincrement, name text);
+  -- 1 down
+  drop table names;
+  EOF
+
+  # Use migrations to drop and recreate the table
+  $sql->migrations->migrate(0)->migrate;
 
   # Insert a few rows
   my $db = $sql->db;
@@ -180,7 +191,7 @@ gracefully by holding on to them only for short amounts of time.
   use Mojolicious::Lite;
   use Mojo::SQLite;
 
-  helper sqlite => sub { state $sql = Mojo::SQLite->new('sqlite:sqlite.db') };
+  helper sqlite => sub { state $sql = Mojo::SQLite->new('sqlite:test.db') };
 
   get '/' => sub {
     my $c  = shift;
@@ -189,6 +200,15 @@ gracefully by holding on to them only for short amounts of time.
   };
 
   app->start;
+
+In this example application, we create a C<sqlite> helper to store a
+L<Mojo::SQLite> object. Our action calls that helper and uses the method
+L<Mojo::SQLite/"db"> to dequeue a L<Mojo::SQLite::Database> object from the
+connection pool. Then we use the method L<Mojo::SQLite::Database/"query"> to
+execute an L<SQL|http://www.postgresql.org/docs/current/static/sql.html>
+statement, which returns a L<Mojo::SQLite::Results> object. And finally we call
+the method L<Mojo::SQLite::Results/"hash"> to retrieve the first row as a hash
+reference.
 
 All I/O and queries are performed synchronously. However, the "Write-Ahead Log"
 journal is enabled for all connections, allowing multiple processes to read and
@@ -222,7 +242,7 @@ L<additional temporary files|https://www.sqlite.org/tempfiles.html> safely.
   use File::Temp;
   use Mojo::SQLite;
   my $tempdir = File::Temp->newdir; # Deleted when object goes out of scope
-  my $tempfile = catfile $tempdir, 'sqlite.db';
+  my $tempfile = catfile $tempdir, 'test.db';
   my $sql = Mojo::SQLite->new->from_filename($tempfile);
 
 =head1 EVENTS
