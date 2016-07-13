@@ -1,13 +1,23 @@
 package Mojo::SQLite::Transaction;
 use Mojo::Base -base;
 
+use Carp 'croak';
+
 our $VERSION = '0.022';
 
 has 'db';
 
+my %behaviors = map { ($_ => 1) } qw(deferred immediate exclusive);
+
 sub new {
   my $self = shift->SUPER::new(@_, rollback => 1);
-  $self->{dbh} = $self->db->dbh;
+  my $dbh = $self->{dbh} = $self->db->dbh;
+  if (my $behavior = $self->{behavior}) {
+    croak qq{Invalid transaction behavior $behavior} unless exists $behaviors{lc $behavior};
+    $dbh->do("begin $behavior transaction");
+  } else {
+    $dbh->begin_work;
+  }
   return $self;
 }
 

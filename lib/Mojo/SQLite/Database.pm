@@ -42,18 +42,9 @@ sub DESTROY {
   $sql->_enqueue($dbh);
 }
 
-my %behaviors = map { ($_ => 1) } qw(deferred immediate exclusive);
-
 sub begin {
-  my $self = shift;
-  if (@_) {
-    my $behavior = shift;
-    croak qq{Invalid transaction behavior $behavior} unless exists $behaviors{lc $behavior};
-    $self->dbh->do("begin $behavior transaction");
-  } else {
-    $self->dbh->begin_work;
-  }
-  my $tx = Mojo::SQLite::Transaction->new(db => $self);
+  my ($self, $behavior) = @_;
+  my $tx = Mojo::SQLite::Transaction->new(db => $self, behavior => $behavior);
   weaken $tx->{db};
   return $tx;
 }
