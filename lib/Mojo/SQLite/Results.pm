@@ -51,21 +51,20 @@ sub text { tablify shift->arrays }
 sub _collect { Mojo::Collection->new(@_) }
 
 sub _expand {
-  my ($self, @data) = @_;
+  my ($self, @rows) = @_;
   
-  return @data unless $data[0] and $self->{expand};
+  return @rows unless $rows[0] and $self->{expand};
   
-  for my $data (@data) {
-    if (ref $data eq 'HASH') {
-      $data->{$_} = from_json $data->{$_}
-        for grep { $data->{$_} and $self->{expand}{json}{$_} } keys %$data;
-    } else {
-      $data->[$_] = from_json $data->[$_]
-        for grep { $data->[$_] and $self->{expand}{json}{$self->columns->[$_]} } 0..$#$data;
-    }
+  if (ref $rows[0] eq 'HASH') {
+    my @json_names = keys %{$self->{expand}{json}};
+    for my $r (@rows) { $r->{$_} = from_json $r->{$_} for grep { $r->{$_} } @json_names }
+  } else {
+    my $cols = $self->columns;
+    my @json_idxs = grep { $self->{expand}{json}{$cols->[$_]} } 0..$#$cols;
+    for my $r (@rows) { $r->[$_] = from_json $r->[$_] for grep { $r->[$_] } @json_idxs }
   }
   
-  return @data;
+  return @rows;
 }
 
 1;
