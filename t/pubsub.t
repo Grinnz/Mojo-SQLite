@@ -34,10 +34,10 @@ my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
     }
   );
   $db->on(notification => sub { push @all, [@_[1, 2]] });
-  $sql->db->notify(pstest => 'test');
+  $sql->db->notify(pstest => '♥test♥');
   Mojo::IOLoop->start;
-  is_deeply \@test, ['test', 'stop'], 'right messages';
-  is_deeply \@all, [['pstest', 'test'], ['pstest', 'stop']],
+  is_deeply \@test, ['♥test♥', 'stop'], 'right messages';
+  is_deeply \@all, [['pstest', '♥test♥'], ['pstest', 'stop']],
     'right notifications';
 }
 

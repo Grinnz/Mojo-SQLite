@@ -60,6 +60,8 @@ sub _db {
 
 1;
 
+=encoding utf8
+
 =head1 NAME
 
 Mojo::SQLite::PubSub - Publish/Subscribe
@@ -73,7 +75,7 @@ Mojo::SQLite::PubSub - Publish/Subscribe
     my ($pubsub, $payload) = @_;
     say "Received: $payload";
   });
-  $pubsub->notify(foo => 'bar');
+  $pubsub->notify(foo => 'I ♥ SQLite!');
   $pubsub->unlisten(foo => $cb);
 
 =head1 DESCRIPTION
@@ -145,7 +147,7 @@ have.
 =head2 notify
 
   $pubsub = $pubsub->notify('foo');
-  $pubsub = $pubsub->notify(foo => 'bar');
+  $pubsub = $pubsub->notify(foo => 'I ♥ SQLite!');
 
 Notify a channel.
 
