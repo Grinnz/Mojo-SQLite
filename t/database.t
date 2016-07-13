@@ -272,7 +272,7 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
 
 # Blocking error
 eval { $sql->db->query('does_not_exist') };
-like $@, qr/does_not_exist/, 'right error';
+like $@, qr/does_not_exist.*database\.t/s, 'right error';
 
 # Non-blocking error
 {
