@@ -12,7 +12,7 @@ use Scalar::Util 'weaken';
 use URI;
 use URI::db;
 
-our $VERSION = '0.022';
+our $VERSION = '0.023';
 
 has 'auto_migrate';
 has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
