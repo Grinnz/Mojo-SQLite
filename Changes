@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.022     2016-07-14 16:59:36 EDT
   - Improve expand performance slightly
   - Add support for encoding and decoding of JSON notifications
   - Add json method to Mojo::SQLite::PubSub
