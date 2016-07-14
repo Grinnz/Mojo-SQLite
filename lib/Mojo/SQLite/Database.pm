@@ -64,8 +64,8 @@ sub listen {
   $self->{listen}{$name}++;
   $self->_init_pubsub;
   $self->_watch;
-  $self->query('insert or ignore into mojo_pubsub_listen
-    (listener_id, channel) values (?, ?)', $self->{listener_id}, $name);
+  $self->dbh->do('insert or ignore into mojo_pubsub_listen
+    (listener_id, channel) values (?, ?)', undef, $self->{listener_id}, $name);
 
   return $self;
 }
@@ -77,10 +77,12 @@ sub notify {
   warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
   $self->_init_pubsub;
 
-  my $notify_id = $self->query('insert into mojo_pubsub_notify (channel, payload)
-    values (?, ?)', $name, $payload)->last_insert_id;
-  $self->query('insert into mojo_pubsub_queue (listener_id, notify_id)
-    select listener_id, ? from mojo_pubsub_listen where channel=?', $notify_id, $name);
+  my $dbh = $self->dbh;
+  $dbh->do('insert into mojo_pubsub_notify (channel, payload)
+    values (?, ?)', undef, $name, $payload);
+  my $notify_id = $dbh->{private_mojo_last_insert_id} // croak 'Failed to retrieve notify ID';
+  $dbh->do('insert into mojo_pubsub_queue (listener_id, notify_id)
+    select listener_id, ? from mojo_pubsub_listen where channel=?', undef, $notify_id, $name);
 
   $self->_notifications;
 
@@ -93,11 +95,12 @@ sub query {
   my ($self, $query) = (shift, shift);
   my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 
+  my $dbh = $self->dbh;
   my ($sth, $errored, $error);
   {
     local $@;
     eval {
-      $sth = $self->dbh->prepare_cached($query, undef, 3);
+      $sth = $dbh->prepare_cached($query, undef, 3);
       # If RaiseError has been disabled, we might not get a handle
       do { _bind_params($sth, @_); $sth->execute } if defined $sth;
       1;
@@ -108,13 +111,13 @@ sub query {
   if ($errored) {
     # Croak error for better context
     croak $error unless $cb;
-    $error = $self->dbh->errstr;
+    $error = $dbh->errstr;
   }
 
   # We won't have a statement handle if prepare failed in a "non-blocking"
   # query or with RaiseError disabled
   my $results = defined $sth ? Mojo::SQLite::Results->new(sth => $sth) : undef;
-  $results->{last_insert_id} = $self->dbh->{private_mojo_last_insert_id} if defined $results;
+  $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id} if defined $results;
   unless ($cb) {
     $self->_notifications;
     return $results;
@@ -135,12 +138,13 @@ sub unlisten {
   my ($self, $name) = @_;
 
   warn qq{$self is no longer listening on channel "$name"\n} if DEBUG;
+  my $dbh = $self->dbh;
   if ($name eq '*') {
     delete $self->{listen};
-    $self->query('delete from mojo_pubsub_listen where listener_id=?', $self->{listener_id});
+    $dbh->do('delete from mojo_pubsub_listen where listener_id=?', undef, $self->{listener_id});
   } else {
     delete $self->{listen}{$name};
-    $self->query('delete from mojo_pubsub_listen where listener_id=? and channel=?',
+    $dbh->do('delete from mojo_pubsub_listen where listener_id=? and channel=?', undef,
       $self->{listener_id}, $name);
   }
   $self->_unwatch unless $self->is_listening;
@@ -171,20 +175,23 @@ sub _bind_params {
 sub _cleanup_pubsub {
   my $self = shift;
   # Delete any stale listeners and their queues
-  my $listener_ids = $self->dbh->selectcol_arrayref(q{select id from mojo_pubsub_listener
+  my $dbh = $self->dbh;
+  my $listener_ids = $dbh->selectcol_arrayref(q{select id from mojo_pubsub_listener
     where last_checked < strftime('%s','now','-1 days')});
   if (@$listener_ids) {
+    warn qq{$self cleaning up stale listeners @$listener_ids\n"} if DEBUG;
     my $in_str = join ',', ('?')x@$listener_ids;
-    $self->dbh->do("delete from mojo_pubsub_queue where listener_id in ($in_str)", undef, @$listener_ids);
-    $self->dbh->do("delete from mojo_pubsub_listen where listener_id in ($in_str)", undef, @$listener_ids);
-    $self->dbh->do("delete from mojo_pubsub_listener where id in ($in_str)", undef, @$listener_ids);
+    $dbh->do("delete from mojo_pubsub_queue where listener_id in ($in_str)", undef, @$listener_ids);
+    $dbh->do("delete from mojo_pubsub_listen where listener_id in ($in_str)", undef, @$listener_ids);
+    $dbh->do("delete from mojo_pubsub_listener where id in ($in_str)", undef, @$listener_ids);
   }
   # Delete any notifications that are no longer queued
-  my $notify_ids = $self->dbh->selectcol_arrayref('select n.id from mojo_pubsub_notify as n
+  my $notify_ids = $dbh->selectcol_arrayref('select n.id from mojo_pubsub_notify as n
     left join mojo_pubsub_queue as q on q.notify_id=n.id where q.notify_id is null');
   if (@$notify_ids) {
+    warn qq{$self cleaning up unqueued notifications @$notify_ids\n} if DEBUG;
     my $in_str = join ',', ('?')x@$notify_ids;
-    $self->dbh->do("delete from mojo_pubsub_notify where id in ($in_str)", undef, @$notify_ids);
+    $dbh->do("delete from mojo_pubsub_notify where id in ($in_str)", undef, @$notify_ids);
   }
 }
 
@@ -198,15 +205,16 @@ sub _init_pubsub {
 sub _notifications {
   my $self = shift;
   if ($self->is_listening) {
-    $self->dbh->do(q{update mojo_pubsub_listener set last_checked=strftime('%s','now')
+    my $dbh = $self->dbh;
+    $dbh->do(q{update mojo_pubsub_listener set last_checked=strftime('%s','now')
       where id=?}, undef, $self->{listener_id});
-    my $notifies = $self->dbh->selectall_arrayref('select n.id, n.channel, n.payload
+    my $notifies = $dbh->selectall_arrayref('select n.id, n.channel, n.payload
       from mojo_pubsub_notify as n inner join mojo_pubsub_queue as q on q.notify_id=n.id
       where q.listener_id=? order by n.id asc', { Slice => {} }, $self->{listener_id});
     if ($notifies and @$notifies) {
-      do { my $count = @$notifies; warn qq{$self has received $count notifications\n} } if DEBUG;
+      do { my @ids = map { $_->{id} } @$notifies; warn qq{$self has received notifications @ids\n} } if DEBUG;
       my $in_str = join ',', ('?')x@$notifies;
-      $self->dbh->do("delete from mojo_pubsub_queue where listener_id=? and notify_id in ($in_str)", undef,
+      $dbh->do("delete from mojo_pubsub_queue where listener_id=? and notify_id in ($in_str)", undef,
         $self->{listener_id}, map { $_->{id} } @$notifies);
       $self->_cleanup_pubsub;
       foreach my $notify (@$notifies) {
@@ -224,7 +232,7 @@ sub _unwatch {
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
   local $@;
-  eval { $self->query('delete from mojo_pubsub_listener where id=?', delete $self->{listener_id}) };
+  eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) };
 }
 
 sub _watch {
@@ -238,7 +246,9 @@ sub _watch {
     $self->_unwatch if !eval { $self->_notifications; 1 }
       or !$self->is_listening;
   });
-  $self->{listener_id} = $self->query('insert into mojo_pubsub_listener default values')->last_insert_id;
+  my $dbh = $self->dbh;
+  $dbh->do('insert into mojo_pubsub_listener default values');
+  $self->{listener_id} = $dbh->{private_mojo_last_insert_id} // croak 'Unable to retrieve listener ID';
 }
 
 1;

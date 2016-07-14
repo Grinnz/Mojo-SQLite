@@ -2,6 +2,8 @@
   - Improve expand performance slightly
   - Add support for encoding and decoding of JSON notifications
   - Add json method to Mojo::SQLite::PubSub
+  - Fix bug where poll_interval in Mojo::SQLite::PubSub was not correctly used
+  - Fix case where notifications from other connections could be lost
 
 0.021     2016-02-15 01:58:40 EST
   - Lower dependency on DBI to 1.627

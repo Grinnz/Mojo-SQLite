@@ -44,9 +44,10 @@ my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
 
 # JSON
 {
-  my $sql = Mojo::SQLite->new->from_filename($tempfile);
+  my $sql = Mojo::SQLite->new->from_filename($tempfile)->max_connections(1);
+  $sql->pubsub->on(reconnect => $on_reconnect);
   my (@json, @raw);
-  $sql->pubsub->json('pstest')->listen(
+  $sql->pubsub->poll_interval(0.1)->json('pstest')->listen(
     pstest => sub {
       my ($pubsub, $payload) = @_;
       push @json, $payload;
