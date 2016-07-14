@@ -403,16 +403,9 @@ Check database connection.
 Execute a blocking L<SQL|http://www.postgresql.org/docs/current/static/sql.html>
 statement and return a L<Mojo::SQLite::Results> object with the results. The
 L<DBD::SQLite> statement handle will be automatically reused when it is not
-active anymore, to increase the performance of future queries.
-Pass a hash
-reference containing C<type> and C<value> elements to specify the bind type of
-the parameter, using types from L<DBI/"DBI Constants">; see
-L<DBD::SQLite/"Blobs"> and the subsequent section for more information. A hash
-reference containing a C<json> element will encode the parameter as
-L<JSON text|http://sqlite.org/json1.html>.
-You can also append a callback for
-API compatibility with L<Mojo::Pg>; the query is still executed in a blocking
-manner.
+active anymore, to increase the performance of future queries. You can also
+append a callback for API compatibility with L<Mojo::Pg>; the query is still
+executed in a blocking manner.
 
   $db->query('insert into foo values (?, ?, ?)' => @values => sub {
     my ($db, $err, $results) = @_;
