@@ -34,6 +34,7 @@ my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
       }
     }
   );
+  is $db->notification_poll_interval, 0.1, 'set notification poll interval';
   $db->on(notification => sub { push @all, [@_[1, 2]] });
   $sql->db->notify(pstest => '♥test♥');
   Mojo::IOLoop->start;
