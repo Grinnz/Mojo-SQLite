@@ -230,10 +230,12 @@ sub _unwatch {
   return $self unless delete $self->{watching};
   warn qq{$self is no longer watching for notifications\n} if DEBUG;
   Mojo::IOLoop->remove($self->{pubsub_timer});
+  my $pid = delete $self->{listener_pid};
+  if ($pid and $pid eq $$) {
+    local $@;
+    eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) };
+  }
   $self->emit('close') if $self->is_listening;
-  local $@;
-  eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) }
-    if $$ == delete $self->{listener_pid};
 }
 
 sub _watch {
@@ -249,7 +251,7 @@ sub _watch {
   });
   my $dbh = $self->dbh;
   $dbh->do('insert into mojo_pubsub_listener default values');
-  $self->{listener_id} = $dbh->{private_mojo_last_insert_id} // croak 'Unable to retrieve listener ID';
+  $self->{listener_id} = $dbh->{private_mojo_last_insert_id} // die 'Unable to retrieve listener ID';
   $self->{listener_pid} = $$;
 }
 
