@@ -156,20 +156,16 @@ my $on_reconnect = sub { push @all_dbs, pop; weaken $all_dbs[-1]; };
   $sql->pubsub->poll_interval(0.1)->on(reconnect => sub { push @dbhs, pop->dbh });
   $sql->pubsub->listen(pstest => sub { push @test, pop });
   ok $dbhs[0], 'database handle';
-  ok $dbhs[0]->ping, 'connected';
   $sql->pubsub->notify(pstest => 'first');
   is_deeply \@test, ['first'], 'right messages';
   {
     local $$ = -23;
     $sql->pubsub->notify(pstest => 'second');
     ok $dbhs[1], 'database handle';
-    ok $dbhs[1]->ping, 'connected';
     isnt $dbhs[0], $dbhs[1], 'different database handles';
-    ok !$dbhs[0]->ping, 'not connected';
     is_deeply \@test, ['first'], 'right messages';
     $sql->pubsub->listen(pstest => sub { push @test, pop });
     $sql->pubsub->notify(pstest => 'third');
-    ok $dbhs[1]->ping, 'connected';
     ok !$dbhs[2], 'no database handle';
     is_deeply \@test, ['first', 'third'], 'right messages';
   }

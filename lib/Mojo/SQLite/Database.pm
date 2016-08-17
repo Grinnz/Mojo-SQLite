@@ -16,9 +16,9 @@ our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
 use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
 
-has 'dbh';
-has 'notification_poll_interval' => 0.5;
-has 'sqlite';
+has [qw(dbh sqlite)];
+has notification_poll_interval => 0.5;
+has results_class              => 'Mojo::SQLite::Results';
 
 sub new {
   my $self = shift->SUPER::new(@_);
@@ -116,7 +116,7 @@ sub query {
 
   # We won't have a statement handle if prepare failed in a "non-blocking"
   # query or with RaiseError disabled
-  my $results = defined $sth ? Mojo::SQLite::Results->new(sth => $sth) : undef;
+  my $results = defined $sth ? $self->results_class->new(sth => $sth) : undef;
   $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id} if defined $results;
   unless ($cb) {
     $self->_notifications;
@@ -232,7 +232,8 @@ sub _unwatch {
   Mojo::IOLoop->remove($self->{pubsub_timer});
   $self->emit('close') if $self->is_listening;
   local $@;
-  eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) };
+  eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) }
+    if $$ == delete $self->{listener_pid};
 }
 
 sub _watch {
@@ -249,6 +250,7 @@ sub _watch {
   my $dbh = $self->dbh;
   $dbh->do('insert into mojo_pubsub_listener default values');
   $self->{listener_id} = $dbh->{private_mojo_last_insert_id} // croak 'Unable to retrieve listener ID';
+  $self->{listener_pid} = $$;
 }
 
 1;
@@ -317,6 +319,14 @@ L<DBD::SQLite> database handle used for all queries.
 
 Interval in seconds to poll for notifications from L</"notify">, defaults to
 C<0.5>.
+
+=head2 results_class
+
+  my $class = $db->results_class;
+  $db       = $db->results_class('MyApp::Results');
+
+Class to be used by L</"query">, defaults to L<Mojo::SQLite::Results>. Note
+that this class needs to have already been loaded before L</"query"> is called.
 
 =head2 sqlite
 
@@ -401,11 +411,11 @@ Check database connection.
   my $results = $db->query('select ? as foo', {json => {bar => 'baz'}});
 
 Execute a blocking L<SQL|http://www.postgresql.org/docs/current/static/sql.html>
-statement and return a L<Mojo::SQLite::Results> object with the results. The
-L<DBD::SQLite> statement handle will be automatically reused when it is not
-active anymore, to increase the performance of future queries. You can also
-append a callback for API compatibility with L<Mojo::Pg>; the query is still
-executed in a blocking manner.
+statement and return a results object based on L</"results_class"> with the
+query results. The L<DBD::SQLite> statement handle will be automatically reused
+when it is not active anymore, to increase the performance of future queries.
+You can also append a callback for API compatibility with L<Mojo::Pg>; the
+query is still executed in a blocking manner.
 
   $db->query('insert into foo values (?, ?, ?)' => @values => sub {
     my ($db, $err, $results) = @_;

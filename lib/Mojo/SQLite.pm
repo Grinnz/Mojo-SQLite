@@ -12,10 +12,11 @@ use Scalar::Util 'weaken';
 use URI;
 use URI::db;
 
-our $VERSION = '0.023';
+our $VERSION = '1.000';
 
 has 'auto_migrate';
-has dsn => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
+has database_class  => 'Mojo::SQLite::Database';
+has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
 has max_connections => 5;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
@@ -45,7 +46,7 @@ sub db {
   # Fork-safety
   delete @$self{qw(pid queue)} unless ($self->{pid} //= $$) eq $$;
 
-  return Mojo::SQLite::Database->new(dbh => $self->_dequeue, sqlite => $self);
+  return $self->database_class->new(dbh => $self->_dequeue, sqlite => $self);
 }
 
 sub from_filename { shift->from_string(_url_from_file(shift, shift)) }
@@ -271,6 +272,14 @@ L<Mojo::SQLite> implements the following attributes.
 Automatically migrate to the latest database schema with L</"migrations">, as
 soon as the first database connection has been established.
 
+=head2 database_class
+
+  my $class = $sql->database_class;
+  $sql      = $sql->database_class('MyApp::Database');
+
+Class to be used by L</"db">, defaults to L<Mojo::SQLite::Database>. Note that
+this class needs to have already been loaded before L</"db"> is called.
+
 =head2 dsn
 
   my $dsn = $sql->dsn;
@@ -353,10 +362,11 @@ L</"from_string"> if necessary.
 
   my $db = $sql->db;
 
-Get L<Mojo::SQLite::Database> object for a cached or newly established database
-connection. The L<DBD::SQLite> database handle will be automatically cached
-again when that object is destroyed, so you can handle connection timeouts
-gracefully by holding on to it only for short amounts of time.
+Get a database object based on L</"database_class"> for a cached or newly
+established database connection. The L<DBD::SQLite> database handle will be
+automatically cached again when that object is destroyed, so you can handle
+problems like connection timeouts gracefully by holding on to it only for short
+amounts of time.
 
   # Add up all the money
   say $sql->db->query('select * from accounts')

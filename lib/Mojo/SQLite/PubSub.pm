@@ -6,8 +6,9 @@ use Scalar::Util 'weaken';
 
 our $VERSION = '0.023';
 
-has 'poll_interval';
-has 'sqlite';
+has [qw(poll_interval sqlite)];
+
+sub DESTROY { shift->_cleanup }
 
 sub json { ++$_[0]{json}{$_[1]} and return $_[0] }
 
@@ -28,12 +29,17 @@ sub unlisten {
   return $self;
 }
 
+sub _cleanup {
+  my $self = shift;
+  $self->{db}->_unwatch;
+  delete @$self{qw(chans db pid)};
+}
+
 sub _db {
   my $self = shift;
 
   # Fork-safety
-  delete @$self{qw(chans pid)} and $self->{db} and $self->{db}->disconnect
-    unless ($self->{pid} //= $$) eq $$;
+  $self->_cleanup unless ($self->{pid} //= $$) eq $$;
 
   return $self->{db} if $self->{db};
 
@@ -91,6 +97,10 @@ database connection, to avoid many common scalability problems. As SQLite has
 no notification system, it is implemented via event loop polling in
 L<Mojo::SQLite::Database>, using automatically created tables prefixed with
 C<mojo_pubsub>.
+
+All subscriptions will be reset automatically and the database connection
+re-established if a new process has been forked, this allows multiple processes
+to share the same L<Mojo::SQLite::PubSub> object safely.
 
 =head1 EVENTS
 

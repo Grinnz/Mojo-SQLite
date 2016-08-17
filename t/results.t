@@ -3,6 +3,18 @@ use Mojo::Base -strict;
 use Test::More;
 use Mojo::SQLite;
 
+package MojoSQLiteTest::Database;
+use Mojo::Base 'Mojo::SQLite::Database';
+
+sub results_class {'MojoSQLiteTest::Results'}
+
+package MojoSQLiteTest::Results;
+use Mojo::Base 'Mojo::SQLite::Results';
+
+sub array_test { shift->array }
+
+package main;
+
 my $sql = Mojo::SQLite->new;
 
 {
@@ -42,6 +54,15 @@ my $sql = Mojo::SQLite->new;
   is $sql->db->query('select * from results_test')->text, "1  foo\n2  bar\n",
     'right text';
 
+  # Custom database and results classes
+  is ref $db, 'Mojo::SQLite::Database', 'right class';
+  $sql->database_class('MojoSQLiteTest::Database');
+  $db = $sql->db;
+  is ref $db, 'MojoSQLiteTest::Database', 'right class';
+  is ref $db->query('select 1'), 'MojoSQLiteTest::Results', 'right class';
+  is_deeply $db->query('select * from results_test')->array_test, [1, 'foo'],
+    'right structure';
+  
   # JSON
   is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
     ->expand(json => 'foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
@@ -85,7 +106,7 @@ my $sql = Mojo::SQLite->new;
     sub {
       my ($delay, $err, $results) = @_;
       $fail ||= $err;
-      push @$result, $results->array;
+      push @$result, $results->array_test;
       $results->finish;
       $db->query('select name from results_test' => $delay->begin);
     },

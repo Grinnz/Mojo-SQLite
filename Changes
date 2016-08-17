@@ -1,4 +1,8 @@
 {{$NEXT}}
+  - Bump version to 1.000
+  - Added database_class attribute to Mojo::SQLite and results_class attribute
+    to Mojo::SQLite::Database to make it easier for these classes to be extended
+  - Fixed a few fork-safety bugs and memory leaks in Mojo::SQLite::PubSub
 
 0.022     2016-07-14 16:59:36 EDT
   - Improve expand performance slightly
