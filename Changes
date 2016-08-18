@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+1.000     2016-08-17 21:01:31 EDT
   - Bump version to 1.000 as this distribution is considered stable
   - Added database_class attribute to Mojo::SQLite and results_class attribute
     to Mojo::SQLite::Database to make it easier for these classes to be extended
