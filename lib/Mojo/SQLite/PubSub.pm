@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Mojo::JSON qw(from_json to_json);
 use Scalar::Util 'weaken';
 
-our $VERSION = '0.023';
+our $VERSION = '1.001';
 
 has [qw(poll_interval sqlite)];
 
