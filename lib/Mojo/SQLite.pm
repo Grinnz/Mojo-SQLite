@@ -8,6 +8,7 @@ use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
 use Mojo::SQLite::PubSub;
+use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 use URI;
 use URI::db;
@@ -33,6 +34,7 @@ has options => sub {
   };
 };
 has pubsub => sub {
+  deprecated 'Mojo::SQLite::PubSub is deprecated.';
   my $pubsub = Mojo::SQLite::PubSub->new(sqlite => shift);
   weaken $pubsub->{sqlite};
   return $pubsub;
@@ -165,19 +167,6 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
   # Select all rows
   say $_->{name} for $db->query('select * from names')->hashes->each;
-
-  # Send and receive notifications non-blocking
-  $sql->pubsub->listen(foo => sub {
-    my ($pubsub, $payload) = @_;
-    say "foo: $payload";
-    $pubsub->notify(bar => $payload);
-  });
-  $sql->pubsub->listen(bar => sub {
-    my ($pubsub, $payload) = @_;
-    say "bar: $payload";
-  });
-  $sql->pubsub->notify(foo => 'SQLite rocks!');
-  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 =head1 DESCRIPTION
 
@@ -325,17 +314,8 @@ options.
   my $pubsub = $sql->pubsub;
   $sql       = $sql->pubsub(Mojo::SQLite::PubSub->new);
 
-L<Mojo::SQLite::PubSub> object you can use to send and receive notifications
-very efficiently, by sharing a single database connection with many consumers.
-
-  # Subscribe to a channel
-  $sql->pubsub->listen(news => sub {
-    my ($pubsub, $payload) = @_;
-    say "Received: $payload";
-  });
-
-  # Notify a channel
-  $sql->pubsub->notify(news => 'SQLite rocks!');
+L<Mojo::SQLite::PubSub> object you can use to send and receive notifications.
+This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head1 METHODS
 
@@ -454,8 +434,6 @@ This is the class hierarchy of the L<Mojo::SQLite> distribution.
 =item * L<Mojo::SQLite::Database>
 
 =item * L<Mojo::SQLite::Migrations>
-
-=item * L<Mojo::SQLite::PubSub>
 
 =item * L<Mojo::SQLite::Results>
 

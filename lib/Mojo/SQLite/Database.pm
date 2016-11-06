@@ -8,6 +8,7 @@ use Mojo::IOLoop;
 use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
+use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 
 our $VERSION = '1.001';
@@ -17,7 +18,10 @@ our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
 
 has [qw(dbh sqlite)];
-has notification_poll_interval => 0.5;
+has notification_poll_interval => sub {
+  deprecated 'Mojo::SQLite::PubSub is deprecated.';
+  return 0.5;
+};
 has results_class              => 'Mojo::SQLite::Results';
 
 sub new {
@@ -60,6 +64,8 @@ sub is_listening { !!keys %{shift->{listen} || {}} }
 sub listen {
   my ($self, $name) = @_;
 
+  deprecated 'Mojo::SQLite:::PubSub is deprecated.';
+
   warn qq{$self listening on channel "$name"\n} if DEBUG;
   $self->{listen}{$name}++;
   $self->_init_pubsub;
@@ -72,6 +78,8 @@ sub listen {
 
 sub notify {
   my ($self, $name, $payload) = @_;
+
+  deprecated 'Mojo::SQLite::PubSub is deprecated.';
 
   $payload //= '';
   warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
@@ -136,6 +144,8 @@ sub tables {
 
 sub unlisten {
   my ($self, $name) = @_;
+
+  deprecated 'Mojo::SQLite::PubSub is deprecated.';
 
   warn qq{$self is no longer listening on channel "$name"\n} if DEBUG;
   my $dbh = $self->dbh;
@@ -320,7 +330,7 @@ L<DBD::SQLite> database handle used for all queries.
   $db          = $db->notification_poll_interval(1);
 
 Interval in seconds to poll for notifications from L</"notify">, defaults to
-C<0.5>.
+C<0.5>. This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 results_class
 
@@ -383,21 +393,23 @@ Disconnect L</"dbh"> and prevent it from getting reused.
 
   my $bool = $db->is_listening;
 
-Check if L</"dbh"> is listening for notifications.
+Check if L</"dbh"> is listening for notifications. This method is
+L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 listen
 
   $db = $db->listen('foo');
 
 Subscribe to a channel and receive L</"notification"> events when the
-L<Mojo::IOLoop> event loop is running.
+L<Mojo::IOLoop> event loop is running. This method is
+L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 notify
 
   $db = $db->notify('foo');
   $db = $db->notify(foo => 'bar');
 
-Notify a channel.
+Notify a channel. This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 ping
 
@@ -457,6 +469,7 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
   $db = $db->unlisten('*');
 
 Unsubscribe from a channel, C<*> can be used to unsubscribe from all channels.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head1 DEBUGGING
 

@@ -1,4 +1,8 @@
 {{$NEXT}}
+  - Deprecate Mojo::SQLite::PubSub and associated methods and attributes.
+    SQLite's serverless nature means it does not have the ability to support
+    client notifications, so it is not possible to implement an efficient
+    pubsub system as in for example PostgreSQL, Redis, or websockets.
 
 1.000     2016-08-17 21:01:31 EDT
   - Bump version to 1.000 as this distribution is considered stable

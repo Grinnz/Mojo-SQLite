@@ -89,6 +89,13 @@ Mojo::SQLite::PubSub - Publish/Subscribe
   $pubsub->notify(foo => 'I ♥ SQLite!');
   $pubsub->unlisten(foo => $cb);
 
+=head1 WARNING
+
+L<Mojo::SQLite::PubSub> is DEPRECATED. It was originally written as a toy
+following the API of L<Mojo::Pg::PubSub>, but as SQLite is serverless and has
+no ability to notify clients, it is not possible to implement an efficient
+pubsub system as in for example PostgreSQL, Redis, or websockets.
+
 =head1 DESCRIPTION
 
 L<Mojo::SQLite::PubSub> is a scalable implementation of the publish/subscribe
