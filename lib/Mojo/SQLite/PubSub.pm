@@ -75,7 +75,7 @@ sub _json { $_[1], $_[0]{json}{$_[1]} ? to_json $_[2] : $_[2] }
 
 =head1 NAME
 
-Mojo::SQLite::PubSub - Publish/Subscribe
+Mojo::SQLite::PubSub - Publish/Subscribe (DEPRECATED)
 
 =head1 SYNOPSIS
 
