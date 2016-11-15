@@ -8,7 +8,6 @@ use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
 use Mojo::SQLite::PubSub;
-use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 use URI;
 use URI::db;
@@ -34,7 +33,6 @@ has options => sub {
   };
 };
 has pubsub => sub {
-  deprecated 'Mojo::SQLite::PubSub is deprecated.';
   my $pubsub = Mojo::SQLite::PubSub->new(sqlite => shift);
   weaken $pubsub->{sqlite};
   return $pubsub;

@@ -2,11 +2,18 @@ package Mojo::SQLite::PubSub;
 use Mojo::Base 'Mojo::EventEmitter';
 
 use Mojo::JSON qw(from_json to_json);
+use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 
 our $VERSION = '1.001';
 
 has [qw(poll_interval sqlite)];
+
+sub new {
+  my $class = shift;
+  deprecated 'Mojo::SQLite::PubSub is deprecated and should no longer be used';
+  return $class->SUPER::new(@_);
+}
 
 sub DESTROY { shift->_cleanup }
 

@@ -19,7 +19,7 @@ use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
 
 has [qw(dbh sqlite)];
 has notification_poll_interval => sub {
-  deprecated 'Mojo::SQLite::PubSub is deprecated.';
+  deprecated 'The notification_poll_interval attribute is deprecated and should no longer be used';
   return 0.5;
 };
 has results_class              => 'Mojo::SQLite::Results';
@@ -59,12 +59,17 @@ sub disconnect {
   $self->dbh->disconnect;
 }
 
-sub is_listening { !!keys %{shift->{listen} || {}} }
+our $_QUERY_NOTIFICATIONS;
+
+sub is_listening {
+  deprecated 'The is_listening method is deprecated and should no longer be used' unless $_QUERY_NOTIFICATIONS;
+  return !!keys %{shift->{listen} || {}};
+}
 
 sub listen {
   my ($self, $name) = @_;
 
-  deprecated 'Mojo::SQLite:::PubSub is deprecated.';
+  deprecated 'The listen method is deprecated and should no longer be used';
 
   warn qq{$self listening on channel "$name"\n} if DEBUG;
   $self->{listen}{$name}++;
@@ -79,7 +84,7 @@ sub listen {
 sub notify {
   my ($self, $name, $payload) = @_;
 
-  deprecated 'Mojo::SQLite::PubSub is deprecated.';
+  deprecated 'The notify method is deprecated and should no longer be used';
 
   $payload //= '';
   warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
@@ -127,6 +132,7 @@ sub query {
   my $results = defined $sth ? $self->results_class->new(sth => $sth) : undef;
   $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id} if defined $results;
   unless ($cb) {
+    local $_QUERY_NOTIFICATIONS = 1; # no deprecated message
     $self->_notifications;
     return $results;
   }
@@ -145,7 +151,7 @@ sub tables {
 sub unlisten {
   my ($self, $name) = @_;
 
-  deprecated 'Mojo::SQLite::PubSub is deprecated.';
+  deprecated 'The unlisten method is deprecated and should no longer be used';
 
   warn qq{$self is no longer listening on channel "$name"\n} if DEBUG;
   my $dbh = $self->dbh;
