@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+1.001     2016-11-15 02:32:27 EST
   - Deprecate Mojo::SQLite::PubSub and associated methods and attributes.
     SQLite's serverless nature means it does not have the ability to support
     client notifications, so it is not possible to implement an efficient
