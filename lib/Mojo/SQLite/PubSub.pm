@@ -75,128 +75,17 @@ sub _json { $_[1], $_[0]{json}{$_[1]} ? to_json $_[2] : $_[2] }
 
 =head1 NAME
 
-Mojo::SQLite::PubSub - Publish/Subscribe (DEPRECATED)
+Mojo::SQLite::PubSub - (DEPRECATED) Publish/Subscribe
 
-=head1 SYNOPSIS
-
-  use Mojo::SQLite::PubSub;
-
-  my $pubsub = Mojo::SQLite::PubSub->new(sqlite => $sql);
-  my $cb = $pubsub->listen(foo => sub {
-    my ($pubsub, $payload) = @_;
-    say "Received: $payload";
-  });
-  $pubsub->notify(foo => 'I ♥ SQLite!');
-  $pubsub->unlisten(foo => $cb);
-
-=head1 WARNING
+=head1 DESCRIPTION
 
 L<Mojo::SQLite::PubSub> is DEPRECATED. It was originally written as a toy
 following the API of L<Mojo::Pg::PubSub>, but as SQLite is serverless and has
 no ability to notify clients, it is not possible to implement an efficient
 pubsub system as in for example PostgreSQL, Redis, or websockets.
 
-=head1 DESCRIPTION
-
-L<Mojo::SQLite::PubSub> is a scalable implementation of the publish/subscribe
-pattern used by L<Mojo::SQLite>. It allows many consumers to share the same
-database connection, to avoid many common scalability problems. As SQLite has
-no notification system, it is implemented via event loop polling in
-L<Mojo::SQLite::Database>, using automatically created tables prefixed with
-C<mojo_pubsub>.
-
-All subscriptions will be reset automatically and the database connection
-re-established if a new process has been forked, this allows multiple processes
-to share the same L<Mojo::SQLite::PubSub> object safely.
-
-=head1 EVENTS
-
-L<Mojo::SQLite::PubSub> inherits all events from L<Mojo::EventEmitter> and can
-emit the following new ones.
-
-=head2 reconnect
-
-  $pubsub->on(reconnect => sub {
-    my ($pubsub, $db) = @_;
-    ...
-  });
-
-Emitted after switching to a new database connection for sending and receiving
-notifications.
-
-=head1 ATTRIBUTES
-
-L<Mojo::SQLite::PubSub> implements the following attributes.
-
-=head2 poll_interval
-
-  my $interval = $pubsub->poll_interval;
-  $pubsub      = $pubsub->poll_interval(0.25);
-
-Interval in seconds to poll for notifications from L</"notify">, passed along
-to L<Mojo::SQLite::Database/"notification_poll_interval">. Note that lower
-values will increase pubsub responsiveness as well as CPU utilization.
-
-=head2 sqlite
-
-  my $sql = $pubsub->sqlite;
-  $pubsub = $pubsub->sqlite(Mojo::SQLite->new);
-
-L<Mojo::SQLite> object this publish/subscribe container belongs to.
-
-=head1 METHODS
-
-L<Mojo::SQLite::PubSub> inherits all methods from L<Mojo::EventEmitter> and
-implements the following new ones.
-
-=head2 json
-
-  $pubsub = $pubsub->json('foo');
-
-Activate automatic JSON encoding and decoding with L<Mojo::JSON/"to_json"> and
-L<Mojo::JSON/"from_json"> for a channel.
-
-  # Send and receive data structures
-  $pubsub->json('foo')->listen(foo => sub {
-    my ($pubsub, $payload) = @_;
-    say $payload->{bar};
-  });
-  $pubsub->notify(foo => {bar => 'I ♥ SQLite!'});
-
-=head2 listen
-
-  my $cb = $pubsub->listen(foo => sub {...});
-
-Subscribe to a channel, there is no limit on how many subscribers a channel can
-have. Automatic decoding of JSON text to Perl values can be activated with
-L</"json">.
-
-  # Subscribe to the same channel twice
-  $pubsub->listen(foo => sub {
-    my ($pubsub, $payload) = @_;
-    say "One: $payload";
-  });
-  $pubsub->listen(foo => sub {
-    my ($pubsub, $payload) = @_;
-    say "Two: $payload";
-  });
-
-=head2 notify
-
-  $pubsub = $pubsub->notify('foo');
-  $pubsub = $pubsub->notify(foo => 'I ♥ SQLite!');
-  $pubsub = $pubsub->notify(foo => {bar => 'baz'});
-
-Notify a channel. Automatic encoding of Perl values to JSON text can be
-activated with L</"json">.
-
-=head2 unlisten
-
-  $pubsub = $pubsub->unlisten('foo');
-  $pubsub = $pubsub->unlisten(foo => $cb);
-
-Unsubscribe from a channel.
-
 =head1 SEE ALSO
 
 L<Mojo::SQLite>, L<Mojo::SQLite::Database>
+
+=for Pod::Coverage *EVERYTHING*

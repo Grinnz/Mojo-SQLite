@@ -326,11 +326,7 @@ L<DBD::SQLite> database handle used for all queries.
 
 =head2 notification_poll_interval
 
-  my $interval = $db->notification_poll_interval;
-  $db          = $db->notification_poll_interval(1);
-
-Interval in seconds to poll for notifications from L</"notify">, defaults to
-C<0.5>. This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 results_class
 
@@ -391,25 +387,15 @@ Disconnect L</"dbh"> and prevent it from getting reused.
 
 =head2 is_listening
 
-  my $bool = $db->is_listening;
-
-Check if L</"dbh"> is listening for notifications. This method is
-L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 listen
 
-  $db = $db->listen('foo');
-
-Subscribe to a channel and receive L</"notification"> events when the
-L<Mojo::IOLoop> event loop is running. This method is
-L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 notify
 
-  $db = $db->notify('foo');
-  $db = $db->notify(foo => 'bar');
-
-Notify a channel. This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head2 ping
 
@@ -465,18 +451,7 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
 
 =head2 unlisten
 
-  $db = $db->unlisten('foo');
-  $db = $db->unlisten('*');
-
-Unsubscribe from a channel, C<*> can be used to unsubscribe from all channels.
 This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
-
-=head1 DEBUGGING
-
-You can set the C<MOJO_PUBSUB_DEBUG> environment variable to get some advanced
-diagnostics information printed to C<STDERR>.
-
-  MOJO_PUBSUB_DEBUG=1
 
 =head1 BUGS
 

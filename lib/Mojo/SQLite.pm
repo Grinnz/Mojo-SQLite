@@ -311,10 +311,6 @@ options.
 
 =head2 pubsub
 
-  my $pubsub = $sql->pubsub;
-  $sql       = $sql->pubsub(Mojo::SQLite::PubSub->new);
-
-L<Mojo::SQLite::PubSub> object you can use to send and receive notifications.
 This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
 
 =head1 METHODS

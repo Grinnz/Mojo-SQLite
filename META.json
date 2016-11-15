@@ -549,7 +549,7 @@
                }
             },
             "name" : "Deprecated",
-            "version" : "0.006"
+            "version" : "0.007"
          },
          {
             "class" : "Dist::Zilla::Plugin::FinderCode",
