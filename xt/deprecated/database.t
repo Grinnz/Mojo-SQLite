@@ -5,13 +5,9 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
-use Mojo::JSON 'true';
-use DBI ':sql_types';
-use Mojo::Util 'encode';
 
 # Connected
 my $sql = Mojo::SQLite->new;
-ok $sql->db->ping, 'connected';
 
 # Notifications
 {
