@@ -197,7 +197,7 @@ options.
 
 =head2 pubsub
 
-This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head1 METHODS
 

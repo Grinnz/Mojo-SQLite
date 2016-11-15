@@ -332,7 +332,7 @@ L<DBD::SQLite> database handle used for all queries.
 
 =head2 notification_poll_interval
 
-This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head2 results_class
 
@@ -393,15 +393,15 @@ Disconnect L</"dbh"> and prevent it from getting reused.
 
 =head2 is_listening
 
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head2 listen
 
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head2 notify
 
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head2 ping
 
@@ -457,7 +457,7 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
 
 =head2 unlisten
 
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"WARNING">.
+This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head1 BUGS
 
