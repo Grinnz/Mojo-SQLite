@@ -11,7 +11,7 @@ use Mojo::SQLite::Transaction;
 use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
