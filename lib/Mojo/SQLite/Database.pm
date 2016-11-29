@@ -1,7 +1,7 @@
 package Mojo::SQLite::Database;
 use Mojo::Base 'Mojo::EventEmitter';
 
-use Carp 'croak';
+use Carp qw(croak shortmess);
 use DBI 'SQL_VARCHAR';
 use DBD::SQLite;
 use Mojo::IOLoop;
@@ -109,35 +109,42 @@ sub query {
   my $cb = ref $_[-1] eq 'CODE' ? pop : undef;
 
   my $dbh = $self->dbh;
+
+  my $prev_h = $dbh->{HandleError};
+  # Better context for error messages
+  local $dbh->{HandleError} = sub { $_[0] = shortmess $_[0]; ($prev_h and $prev_h->(@_)) ? 1 : 0 };
+
   my ($sth, $errored, $error);
   {
     local $@;
-    eval {
-      $sth = $dbh->prepare_cached($query, undef, 3);
+    unless (eval {
       # If RaiseError has been disabled, we might not get a handle
-      do { _bind_params($sth, @_); $sth->execute } if defined $sth;
+      if (defined($sth = $dbh->prepare_cached($query, undef, 3))) {
+        _bind_params($sth, @_);
+        $sth->execute;
+      }
       1;
-    } or $errored = 1;
-    $error = $@ if $errored;
+    }) { $errored = 1; $error = $@ }
   }
 
-  if ($errored) {
-    # Croak error for better context
-    croak $error unless $cb;
-    $error = $dbh->errstr;
-  }
+  die $error if $errored and !$cb; # bail out for errored "blocking" queries
 
   # We won't have a statement handle if prepare failed in a "non-blocking"
   # query or with RaiseError disabled
-  my $results = defined $sth ? $self->results_class->new(sth => $sth) : undef;
-  $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id} if defined $results;
-  unless ($cb) {
+  my $results;
+  if (defined $sth) {
+    $results = $self->results_class->new(sth => $sth);
+    $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id};
+  }
+
+  unless ($cb) { # blocking
     local $_QUERY_NOTIFICATIONS = 1; # no deprecated message
     $self->_notifications;
     return $results;
   }
 
   # Still blocking, but call the callback on the next tick
+  $error = $dbh->err ? $dbh->errstr : $errored ? ($error // 'Error running SQLite query') : undef;
   Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
   return $self;
 }
