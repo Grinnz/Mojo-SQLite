@@ -83,16 +83,15 @@ sub from_string {
 sub _dequeue {
   my $self = shift;
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
-  my $dbh = DBI->connect($self->dsn, undef, undef, $self->options);
-  if (defined $dbh) {
-    $dbh->do('pragma journal_mode=WAL');
-    $dbh->do('pragma synchronous=NORMAL');
-    # Cache the last insert rowid on inserts
-    weaken(my $weakdbh = $dbh);
-    $dbh->sqlite_update_hook(sub {
-      $weakdbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
-    });
-  }
+  my $dbh = DBI->connect($self->dsn, undef, undef, $self->options)
+    // croak "DBI connection to @{[$self->dsn]} failed: $DBI::errstr"; # RaiseError disabled
+  $dbh->do('pragma journal_mode=WAL');
+  $dbh->do('pragma synchronous=NORMAL');
+  # Cache the last insert rowid on inserts
+  weaken(my $weakdbh = $dbh);
+  $dbh->sqlite_update_hook(sub {
+    $weakdbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
+  });
   ++$self->{migrated} and $self->migrations->migrate
     if !$self->{migrated} && $self->auto_migrate;
   $self->emit(connection => $dbh);
