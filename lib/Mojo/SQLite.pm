@@ -13,7 +13,7 @@ use Scalar::Util 'weaken';
 use URI;
 use URI::db;
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 
 has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
