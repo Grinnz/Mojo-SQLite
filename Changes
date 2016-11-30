@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+1.002     2016-11-30 11:17:56 EST
   - Improved contextual caller information in query error messages. (#6)
   - Fix memory leak when reusing the same database handle many times. (#7)
 
