@@ -3,6 +3,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp 'croak';
 use DBI;
+use DBD::SQLite;
 use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
@@ -86,6 +87,11 @@ sub _dequeue {
   if (defined $dbh) {
     $dbh->do('pragma journal_mode=WAL');
     $dbh->do('pragma synchronous=NORMAL');
+    # Cache the last insert rowid on inserts
+    weaken(my $weakdbh = $dbh);
+    $dbh->sqlite_update_hook(sub {
+      $weakdbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
+    });
   }
   ++$self->{migrated} and $self->migrations->migrate
     if !$self->{migrated} && $self->auto_migrate;

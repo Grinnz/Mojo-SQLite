@@ -3,7 +3,6 @@ use Mojo::Base 'Mojo::EventEmitter';
 
 use Carp qw(croak shortmess);
 use DBI 'SQL_VARCHAR';
-use DBD::SQLite;
 use Mojo::IOLoop;
 use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
@@ -23,18 +22,6 @@ has notification_poll_interval => sub {
   return 0.5;
 };
 has results_class              => 'Mojo::SQLite::Results';
-
-sub new {
-  my $self = shift->SUPER::new(@_);
-  # Cache the last insert rowid on inserts
-  if (my $dbh = $self->dbh) {
-    weaken $dbh;
-    $dbh->sqlite_update_hook(sub {
-      $dbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
-    });
-  }
-  return $self;
-}
 
 sub DESTROY {
   my $self = shift;
@@ -360,14 +347,6 @@ L<Mojo::SQLite> object this database belongs to.
 
 L<Mojo::SQLite::Database> inherits all methods from L<Mojo::Base> and
 implements the following new ones.
-
-=head2 new
-
-  my $db = Mojo::SQLite::Database->new;
-  my $db = Mojo::SQLite::Database->new(dbh => $dbh, sqlite => Mojo::SQLite->new);
-  my $db = Mojo::SQLite::Database->new({dbh => $dbh, sqlite => Mojo::SQLite->new);
-
-Construct a new L<Mojo::SQLite::Database> object.
 
 =head2 begin
 
