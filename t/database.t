@@ -215,4 +215,8 @@ like $@, qr/does_not_exist.*database\.t/s, 'right error';
   is $db->dbh->errstr, $fail, 'same error';
 }
 
+# Error context
+eval { $sql->db->query('select * from table_does_not_exist') };
+like $@, qr/database\.t/, 'right error';
+
 done_testing();

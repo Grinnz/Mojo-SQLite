@@ -144,7 +144,7 @@ sub query {
   }
 
   # Still blocking, but call the callback on the next tick
-  $error = $dbh->err ? $dbh->errstr : $errored ? ($error // 'Error running SQLite query') : undef;
+  $error = $dbh->err ? $dbh->errstr : $errored ? ($error || 'Error running SQLite query') : undef;
   Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
   return $self;
 }
