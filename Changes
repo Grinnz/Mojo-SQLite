@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Improved contextual caller information in query error messages. (#6)
 
 1.001     2016-11-15 02:32:27 EST
   - Deprecate Mojo::SQLite::PubSub and associated methods and attributes.

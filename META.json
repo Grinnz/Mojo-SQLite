@@ -65,28 +65,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "1.001"
+         "version" : "1.002"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "1.001"
+         "version" : "1.002"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "1.001"
+         "version" : "1.002"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "1.001",
+         "version" : "1.002",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "1.001"
+         "version" : "1.002"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "1.001"
+         "version" : "1.002"
       }
    },
    "release_status" : "stable",
@@ -101,7 +101,7 @@
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
       }
    },
-   "version" : "1.001",
+   "version" : "1.002",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.024000"
@@ -120,7 +120,7 @@
                }
             },
             "name" : "@Author::DBOOK/Readme_Github",
-            "version" : "0.161170"
+            "version" : "0.163250"
          },
          {
             "class" : "Dist::Zilla::Plugin::GenerateFile",
@@ -204,11 +204,12 @@
                   "changelog" : "Changes"
                },
                "Dist::Zilla::Role::Git::Repo" : {
+                  "git --version" : "1.7.1",
                   "repo_root" : "."
                }
             },
             "name" : "@Author::DBOOK/Git::Check",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::RewriteVersion",
@@ -272,6 +273,7 @@
                   "changelog" : "Changes"
                },
                "Dist::Zilla::Role::Git::Repo" : {
+                  "git --version" : "1.7.1",
                   "repo_root" : "."
                },
                "Dist::Zilla::Role::Git::StringFormatter" : {
@@ -279,7 +281,7 @@
                }
             },
             "name" : "@Author::DBOOK/Git::Commit",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Tag",
@@ -288,11 +290,12 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v1.001",
+                  "tag" : "v1.002",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },
                "Dist::Zilla::Role::Git::Repo" : {
+                  "git --version" : "1.7.1",
                   "repo_root" : "."
                },
                "Dist::Zilla::Role::Git::StringFormatter" : {
@@ -300,7 +303,7 @@
                }
             },
             "name" : "@Author::DBOOK/Git::Tag",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::BumpVersionAfterRelease",
@@ -335,6 +338,7 @@
                   "changelog" : "Changes"
                },
                "Dist::Zilla::Role::Git::Repo" : {
+                  "git --version" : "1.7.1",
                   "repo_root" : "."
                },
                "Dist::Zilla::Role::Git::StringFormatter" : {
@@ -342,7 +346,7 @@
                }
             },
             "name" : "@Author::DBOOK/Commit_Version_Bump",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::Git::Push",
@@ -354,11 +358,12 @@
                   "remotes_must_exist" : 1
                },
                "Dist::Zilla::Role::Git::Repo" : {
+                  "git --version" : "1.7.1",
                   "repo_root" : "."
                }
             },
             "name" : "@Author::DBOOK/Git::Push",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::PodSyntaxTests",
@@ -400,7 +405,7 @@
                }
             },
             "name" : "@Author::DBOOK/Git::GatherDir",
-            "version" : "2.039"
+            "version" : "2.041"
          },
          {
             "class" : "Dist::Zilla::Plugin::Regenerate::AfterReleasers",
@@ -451,7 +456,7 @@
                }
             },
             "name" : "@Author::DBOOK/ReadmeAnyFromPod",
-            "version" : "0.161170"
+            "version" : "0.163250"
          },
          {
             "class" : "Dist::Zilla::Plugin::ExecDir",
@@ -619,6 +624,6 @@
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>"
    ],
-   "x_serialization_backend" : "Cpanel::JSON::XS version 3.0222"
+   "x_serialization_backend" : "Cpanel::JSON::XS version 3.0225"
 }
 
