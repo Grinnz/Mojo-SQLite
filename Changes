@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+1.003     2016-12-11 16:30:31 EST
   - Add links to alternatives for deprecated Mojo::SQLite::PubSub.
 
 1.002     2016-11-30 11:17:56 EST
