@@ -65,28 +65,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "1.002",
+         "version" : "1.003",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "1.002"
+         "version" : "1.003"
       }
    },
    "release_status" : "stable",
@@ -99,9 +99,10 @@
          "type" : "git",
          "url" : "https://github.com/Grinnz/Mojo-SQLite.git",
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
-      }
+      },
+      "x_IRC" : "irc://irc.perl.org/#mojo"
    },
-   "version" : "1.002",
+   "version" : "1.003",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.024000"
@@ -181,6 +182,11 @@
          {
             "class" : "Dist::Zilla::Plugin::MetaNoIndex",
             "name" : "@Author::DBOOK/MetaNoIndex",
+            "version" : "6.008"
+         },
+         {
+            "class" : "Dist::Zilla::Plugin::MetaResources",
+            "name" : "@Author::DBOOK/MetaResources",
             "version" : "6.008"
          },
          {
@@ -290,7 +296,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v1.002",
+                  "tag" : "v1.003",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },

@@ -89,10 +89,12 @@ Mojo::SQLite::PubSub - (DEPRECATED) Publish/Subscribe
 L<Mojo::SQLite::PubSub> is DEPRECATED. It was originally written as a toy
 following the API of L<Mojo::Pg::PubSub>, but as SQLite is serverless and has
 no ability to notify clients, it is not possible to implement an efficient
-pubsub system as in for example PostgreSQL, Redis, or websockets.
+pubsub system as in for example PostgreSQL, Redis, or websockets. Consider
+instead using the pubsub facilities of L<Mojo::Pg>, L<Mojo::Redis2>, or
+L<Mercury|mercury>.
 
 =head1 SEE ALSO
 
-L<Mojo::SQLite>, L<Mojo::SQLite::Database>
+L<Mojo::Pg::PubSub>, L<Mojo::Redis2>, L<mercury>
 
 =for Pod::Coverage *EVERYTHING*
