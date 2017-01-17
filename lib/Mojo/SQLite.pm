@@ -41,14 +41,7 @@ has pubsub => sub {
 
 sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
 
-sub db {
-  my $self = shift;
-
-  # Fork-safety
-  delete @$self{qw(pid queue)} unless ($self->{pid} //= $$) eq $$;
-
-  return $self->database_class->new(dbh => $self->_dequeue, sqlite => $self);
-}
+sub db { $_[0]->database_class->new(dbh => $_[0]->_dequeue, sqlite => $_[0]) }
 
 sub from_filename { shift->from_string(_url_from_file(shift, shift)) }
 
@@ -82,19 +75,27 @@ sub from_string {
 
 sub _dequeue {
   my $self = shift;
+
+  # Fork-safety
+  delete @$self{qw(pid queue)} unless ($self->{pid} //= $$) eq $$;
+
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
   my $dbh = DBI->connect($self->dsn, undef, undef, $self->options)
     // croak "DBI connection to @{[$self->dsn]} failed: $DBI::errstr"; # RaiseError disabled
   $dbh->do('pragma journal_mode=WAL');
   $dbh->do('pragma synchronous=NORMAL');
+
   # Cache the last insert rowid on inserts
   weaken(my $weakdbh = $dbh);
   $dbh->sqlite_update_hook(sub {
     $weakdbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
   });
+
+  # Automatic migrations
   ++$self->{migrated} and $self->migrations->migrate
     if !$self->{migrated} && $self->auto_migrate;
   $self->emit(connection => $dbh);
+
   return $dbh;
 }
 

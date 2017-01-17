@@ -4,7 +4,7 @@ requires 'DBI'             => '1.627';
 requires 'DBD::SQLite'     => '1.50'; # for json support
 requires 'File::Spec::Functions';
 requires 'File::Temp';
-requires 'Mojolicious'     => '6.14';
+requires 'Mojolicious'     => '7.15';
 requires 'Scalar::Util';
 requires 'URI'             => '1.69';
 requires 'URI::db'         => '0.15';
