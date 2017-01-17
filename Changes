@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+1.004     2017-01-17 00:10:51 EST
   - Use Mojo::File from Mojolicious 7.15 instead of deprecated
     Mojo::Util slurp function. (#9)
 
