@@ -84,7 +84,7 @@ EOW
         "Dan Book <dbook\@cpan.org>"
       ],
       "dist_name" => "Mojo-SQLite",
-      "dist_version" => "1.003",
+      "dist_version" => "1.004",
       "license" => "artistic_2",
       "module_name" => "Mojo::SQLite",
       "recursive_test_files" => 1,
@@ -94,7 +94,7 @@ EOW
         "DBI" => "1.627",
         "File::Spec::Functions" => 0,
         "File::Temp" => 0,
-        "Mojolicious" => "6.14",
+        "Mojolicious" => "7.15",
         "Scalar::Util" => 0,
         "URI" => "1.69",
         "URI::db" => "0.15",

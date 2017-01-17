@@ -1,4 +1,6 @@
 {{$NEXT}}
+  - Use Mojo::File from Mojolicious 7.15 instead of deprecated
+    Mojo::Util slurp function. (#9)
 
 1.003     2016-12-11 16:30:31 EST
   - Add links to alternatives for deprecated Mojo::SQLite::PubSub.

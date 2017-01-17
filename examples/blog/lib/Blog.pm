@@ -17,7 +17,7 @@ sub startup {
     posts => sub { state $posts = Blog::Model::Posts->new(sqlite => shift->sqlite) });
 
   # Migrate to latest version if necessary
-  my $path = $self->home->rel_file('migrations/blog.sql');
+  my $path = $self->home->child('migrations', 'blog.sql');
   $self->sqlite->migrations->name('blog')->from_file($path)->migrate;
 
   # Controller
