@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+2.000     2017-02-11 17:03:53 EST
   - Add support for generating queries with SQL::Abstract. (based on Mojo::Pg 3.0)
   - Add abstract attribute to Mojo::SQLite.
   - Add delete, insert, select, and update methods to Mojo::SQLite::Database.
