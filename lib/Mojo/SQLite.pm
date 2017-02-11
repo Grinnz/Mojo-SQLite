@@ -239,6 +239,13 @@ L<additional temporary files|https://www.sqlite.org/tempfiles.html> safely.
   my $tempfile = catfile $tempdir, 'test.db';
   my $sql = Mojo::SQLite->new->from_filename($tempfile);
 
+=head1 EXAMPLES
+
+This distribution also contains a well-structured example
+L<blog application|https://github.com/kraih/mojo-pg/tree/master/examples/blog>
+you can use for inspiration. This application shows how to apply the MVC design
+pattern in practice.
+
 =head1 EVENTS
 
 L<Mojo::SQLite> inherits all events from L<Mojo::EventEmitter> and can emit the
