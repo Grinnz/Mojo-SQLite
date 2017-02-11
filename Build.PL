@@ -95,6 +95,7 @@ EOW
         "File::Spec::Functions" => 0,
         "File::Temp" => 0,
         "Mojolicious" => "7.15",
+        "SQL::Abstract" => "1.81",
         "Scalar::Util" => 0,
         "URI" => "1.69",
         "URI::db" => "0.15",
