@@ -7,7 +7,7 @@ use Mojo::IOLoop;
 use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
-use Mojo::Util 'deprecated';
+use Mojo::Util qw(deprecated monkey_patch);
 use Scalar::Util 'weaken';
 
 our $VERSION = '1.005';
@@ -22,6 +22,13 @@ has notification_poll_interval => sub {
   return 0.5;
 };
 has results_class              => 'Mojo::SQLite::Results';
+
+for my $name (qw(delete insert select update)) {
+  monkey_patch __PACKAGE__, lc $name, sub {
+    my ($self, @cb) = (shift, ref $_[-1] eq 'CODE' ? pop : ());
+    return $self->query($self->sqlite->abstract->$name(@_), @cb);
+  };
+}
 
 sub DESTROY {
   my $self = shift;
@@ -360,8 +367,8 @@ L<Mojo::SQLite::Transaction/"commit"> has been called before it is destroyed.
   # Insert rows in a transaction
   eval {
     my $tx = $db->begin;
-    $db->query('insert into frameworks values (?)', 'Catalyst');
-    $db->query('insert into frameworks values (?)', 'Mojolicious');
+    $db->insert('frameworks', {name => 'Catalyst'});
+    $db->insert('frameworks', {name => 'Mojolicious'});
     $tx->commit;
   };
   say $@ if $@;
@@ -371,11 +378,41 @@ may optionally be passed; the default in L<DBD::SQLite> is currently
 C<immediate>. See L<DBD::SQLite/"Transaction and Database Locking"> for more
 details.
 
+=head2 delete
+
+  my $results = $db->delete($table, \%where);
+
+Generate a C<DELETE> statement with L<Mojo::SQLite/"abstract"> (usually an
+L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
+callback for API compatibility with L<Mojo::Pg>; the query is still executed in
+a blocking manner.
+
+  $db->delete(some_table => sub {
+    my ($db, $err, $results) = @_;
+    ...
+  });
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
 =head2 disconnect
 
   $db->disconnect;
 
 Disconnect L</"dbh"> and prevent it from getting reused.
+
+=head2 insert
+
+  my $results = $db->insert($table, \@values || \%fieldvals, \%options);
+
+Generate an C<INSERT> statement with L<Mojo::SQLite/"abstract"> (usually an
+L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
+callback for API compatibility with L<Mojo::Pg>; the query is still executed in
+a blocking manner.
+
+  $db->insert(some_table => {foo => 'bar'} => sub {
+    my ($db, $err, $results) = @_;
+    ...
+  });
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 =head2 is_listening
 
@@ -428,6 +465,21 @@ to decode JSON text fields to Perl values with L<Mojo::JSON/"from_json">.
   $db->query('select ? as foo', {json => {bar => 'I ♥ SQLite!'}})
     ->expand(json => 'foo')->hash->{foo}{bar};
 
+=head2 select
+
+  my $results = $db->select($source, $fields, $where, $order);
+
+Generate a C<SELECT> statement with L<Mojo::SQLite/"abstract"> (usually an
+L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
+callback for API compatibility with L<Mojo::Pg>; the query is still executed in
+a blocking manner.
+
+  $db->select(some_table => ['foo'] => {bar => 'yada'} => sub {
+    my ($db, $err, $results) = @_;
+    ...
+  });
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+
 =head2 tables
 
   my $tables = $db->tables;
@@ -444,6 +496,21 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
 =head2 unlisten
 
 This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
+
+=head2 update
+
+  my $results = $db->update($table, \%fieldvals, \%where);
+
+Generate an C<UPDATE> statement with L<Mojo::SQLite/"abstract"> (usually an
+L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
+callback for API compatibility with L<Mojo::Pg>; the query is still executed in
+a blocking manner.
+
+  $db->update(some_table => {foo => 'baz'} => {foo => 'bar'} => sub {
+    my ($db, $err, $results) = @_;
+    ...
+  });
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
 
 =head1 BUGS
 

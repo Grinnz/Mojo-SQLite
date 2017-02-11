@@ -1,4 +1,7 @@
 {{$NEXT}}
+  - Add support for generating queries with SQL::Abstract. (based on Mojo::Pg 3.0)
+  - Add abstract attribute to Mojo::SQLite.
+  - Add delete, insert, select, and update methods to Mojo::SQLite::Database.
 
 1.004     2017-01-17 00:10:51 EST
   - Use Mojo::File from Mojolicious 7.15 instead of deprecated

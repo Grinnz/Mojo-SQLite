@@ -10,11 +10,13 @@ use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
 use Mojo::SQLite::PubSub;
 use Scalar::Util 'weaken';
+use SQL::Abstract;
 use URI;
 use URI::db;
 
 our $VERSION = '1.005';
 
+has abstract => sub { SQL::Abstract->new(quote_char => '"') };
 has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
 has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
@@ -141,8 +143,16 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
   # Use migrations to drop and recreate the table
   $sql->migrations->migrate(0)->migrate;
 
-  # Insert a few rows
+  # Get a database handle from the cache for multiple queries
   my $db = $sql->db;
+
+  # Use SQL::Abstract to generate simple CRUD queries for you
+  $db->insert('names', {name => 'Isabel'});
+  say $db->select('names', ['id'], {name => 'Isabel'})->hash->{id};
+  $db->update('names', {name => 'Bel'}, {name => 'Isabel'});
+  $db->delete('names', {name => 'Bel'});
+
+  # Insert a few rows
   $db->query('insert into names (name) values (?)', 'Sara');
   $db->query('insert into names (name) values (?)', 'Stefan');
 
@@ -264,6 +274,16 @@ Emitted when a new database connection has been established.
 
 L<Mojo::SQLite> implements the following attributes.
 
+=head2 abstract
+
+  my $abstract = $sql->abstract;
+  $sql         = $sql->abstract(SQL::Abstract->new);
+
+L<SQL::Abstract> object used to generate CRUD queries for
+L<Mojo::SQLite::Database>.
+
+  my($stmt, @bind) = $sql->abstract->select('names');
+
 =head2 auto_migrate
 
   my $bool = $sql->auto_migrate;
@@ -356,7 +376,7 @@ problems like connection timeouts gracefully by holding on to it only for short
 amounts of time.
 
   # Add up all the money
-  say $sql->db->query('select * from accounts')
+  say $sql->db->select('accounts')
     ->hashes->reduce(sub { $a->{money} + $b->{money} });
 
 =head2 from_filename
@@ -429,6 +449,15 @@ string, it will be parsed and applied to L</"options">.
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
   $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form => {PrintError => 1}));
+
+=head1 DEBUGGING
+
+You can set the C<DBI_TRACE> environment variable to get some advanced
+diagnostics information printed by L<DBI>.
+
+  DBI_TRACE=1
+  DBI_TRACE=15
+  DBI_TRACE=SQL
 
 =head1 REFERENCE
 

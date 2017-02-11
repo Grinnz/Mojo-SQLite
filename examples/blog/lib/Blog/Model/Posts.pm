@@ -5,24 +5,24 @@ has 'sqlite';
 
 sub add {
   my ($self, $post) = @_;
-  my $db = $self->sqlite->db;
-  my $sql = 'insert into posts (title, body) values (?, ?)';
-  return $db->query($sql, $post->{title}, $post->{body})->last_insert_id;
+  return $self->sqlite->db->insert('posts', $post)->last_insert_id;
 }
 
-sub all { shift->sqlite->db->query('select * from posts')->hashes->to_array }
+sub all { shift->sqlite->db->select('posts')->hashes->to_array }
 
 sub find {
   my ($self, $id) = @_;
-  return $self->sqlite->db->query('select * from posts where id = ?', $id)->hash;
+  return $self->sqlite->db->select('posts', undef, {id => $id})->hash;
 }
 
-sub remove { shift->sqlite->db->query('delete from posts where id = ?', shift) }
+sub remove {
+  my ($self, $id) = @_;
+  $self->sqlite->db->delete('posts', {id => $id});
+}
 
 sub save {
   my ($self, $id, $post) = @_;
-  my $sql = 'update posts set title = ?, body = ? where id = ?';
-  $self->sqlite->db->query($sql, $post->{title}, $post->{body}, $id);
+  $self->sqlite->db->update('posts', $post, {id => $id});
 }
 
 1;
