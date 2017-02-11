@@ -5,7 +5,7 @@ use Mojo::JSON qw(from_json to_json);
 use Mojo::Util 'deprecated';
 use Scalar::Util 'weaken';
 
-our $VERSION = '1.005';
+our $VERSION = '2.001';
 
 has [qw(poll_interval sqlite)];
 
