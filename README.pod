@@ -28,26 +28,21 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
   # Use SQL::Abstract to generate simple CRUD queries for you
   $db->insert('names', {name => 'Isabel'});
-  say $db->select('names', ['id'], {name => 'Isabel'})->hash->{id};
-  $db->update('names', {name => 'Bel'}, {name => 'Isabel'});
+  my $id = $db->select('names', ['id'], {name => 'Isabel'})->hash->{id};
+  $db->update('names', {name => 'Bel'}, {id => $id});
   $db->delete('names', {name => 'Bel'});
 
-  # Insert a few rows
-  $db->query('insert into names (name) values (?)', 'Sara');
-  $db->query('insert into names (name) values (?)', 'Stefan');
-
-  # Insert more rows in a transaction
+  # Insert a few rows in a transaction with SQL and placeholders
   eval {
     my $tx = $db->begin;
-    $db->query('insert into names (name) values (?)', 'Baerbel');
-    $db->query('insert into names (name) values (?)', 'Wolfgang');
+    $db->query('insert into names (name) values (?)', 'Sara');
+    $db->query('insert into names (name) values (?)', 'Stefan');
     $tx->commit;
   };
   say $@ if $@;
 
-  # Insert another row and return the generated id
-  say $db->query('insert into names (name) values (?)', 'Daniel')
-    ->last_insert_id;
+  # Insert another row with SQL::Abstract and return the generated id
+  say $db->insert('names', {name => 'Daniel'})->last_insert_id;
   
   # JSON roundtrip
   say $db->query('select ? as foo', {json => {bar => 'baz'}})
@@ -59,8 +54,8 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
     say $next->{name};
   }
 
-  # Select all rows
-  say $_->{name} for $db->query('select * from names')->hashes->each;
+  # Select all rows with SQL::Abstract
+  say $_->{name} for $db->select('names')->hashes->each;
 
 =head1 DESCRIPTION
 
@@ -160,9 +155,11 @@ L<Mojo::SQLite> implements the following attributes.
   $sql         = $sql->abstract(SQL::Abstract->new);
 
 L<SQL::Abstract> object used to generate CRUD queries for
-L<Mojo::SQLite::Database>.
+L<Mojo::SQLite::Database>, defaults to setting C<name_sep> to C<.> and
+C<quote_char> to C<">.
 
-  my($stmt, @bind) = $sql->abstract->select('names');
+  # Generate WHERE clause and bind values
+  my($stmt, @bind) = $sql->abstract->where({foo => 'bar', baz => 'yada'});
 
 =head2 auto_migrate
 
@@ -249,11 +246,11 @@ L</"from_string"> if necessary.
 
   my $db = $sql->db;
 
-Get a database object based on L</"database_class"> for a cached or newly
-established database connection. The L<DBD::SQLite> database handle will be
-automatically cached again when that object is destroyed, so you can handle
-problems like connection timeouts gracefully by holding on to it only for short
-amounts of time.
+Get a database object based on L</"database_class"> (which is usually
+L<Mojo::SQLite::Database>) for a cached or newly established database
+connection. The L<DBD::SQLite> database handle will be automatically cached
+again when that object is destroyed, so you can handle problems like connection
+timeouts gracefully by holding on to it only for short amounts of time.
 
   # Add up all the money
   say $sql->db->select('accounts')
