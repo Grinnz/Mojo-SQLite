@@ -62,6 +62,19 @@ my $sql = Mojo::SQLite->new;
     ->hashes->to_array, [{id => 2, name => 'bar'}], 'right structure';
   $db->delete('crud_test');
   is_deeply $db->select('crud_test')->hashes->to_array, [], 'right structure';
+
+  # Quoting
+  $db->query(
+    'create table if not exists crud_test2 (
+       id   integer primary key autoincrement,
+       "t e s t" text
+     )'
+  );
+  $db->insert('crud_test2',      {'t e s t' => 'foo'});
+  $db->insert('main.crud_test2', {'t e s t' => 'bar'});
+  is_deeply $db->select('main.crud_test2')->hashes->to_array,
+    [{id => 1, 't e s t' => 'foo'}, {id => 2, 't e s t' => 'bar'}],
+    'right structure';
 }
 
 done_testing();

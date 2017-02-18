@@ -18,7 +18,7 @@ sub startup {
 
   # Migrate to latest version if necessary
   my $path = $self->home->child('migrations', 'blog.sql');
-  $self->sqlite->migrations->name('blog')->from_file($path)->migrate;
+  $self->sqlite->auto_migrate(1)->migrations->name('blog')->from_file($path);
 
   # Controller
   my $r = $self->routes;
