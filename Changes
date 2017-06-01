@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+2.002     2017-06-01 14:16:34 EDT
   - Add no_wal option to prevent enabling WAL mode on connection.
 
 2.001     2017-02-18 15:36:16 EST
