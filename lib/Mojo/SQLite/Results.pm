@@ -5,7 +5,7 @@ use Mojo::Collection;
 use Mojo::JSON 'from_json';
 use Mojo::Util 'tablify';
 
-our $VERSION = '2.002';
+our $VERSION = '2.003';
 
 has 'sth';
 
