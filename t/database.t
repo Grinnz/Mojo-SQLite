@@ -219,4 +219,15 @@ like $@, qr/does_not_exist.*database\.t/s, 'right error';
 eval { $sql->db->query('select * from table_does_not_exist') };
 like $@, qr/database\.t/, 'right error';
 
+# WAL mode option
+{
+  my $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
+  is uc $journal_mode, 'WAL', 'right journal mode';
+  
+  my $sql = Mojo::SQLite->new;
+  $sql->options->{no_wal} = 1;
+  $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
+  is uc $journal_mode, 'DELETE', 'right journal mode';
+}
+
 done_testing();

@@ -82,10 +82,13 @@ sub _dequeue {
   delete @$self{qw(pid queue)} unless ($self->{pid} //= $$) eq $$;
 
   while (my $dbh = shift @{$self->{queue} || []}) { return $dbh if $dbh->ping }
+  
   my $dbh = DBI->connect($self->dsn, undef, undef, $self->options)
     // croak "DBI connection to @{[$self->dsn]} failed: $DBI::errstr"; # RaiseError disabled
-  $dbh->do('pragma journal_mode=WAL');
-  $dbh->do('pragma synchronous=NORMAL');
+  unless ($self->options->{no_wal}) {
+    $dbh->do('pragma journal_mode=WAL');
+    $dbh->do('pragma synchronous=NORMAL');
+  }
 
   # Cache the last insert rowid on inserts
   weaken(my $weakdbh = $dbh);
@@ -212,7 +215,8 @@ reference.
 All I/O and queries are performed synchronously. However, the "Write-Ahead Log"
 journal is enabled for all connections, allowing multiple processes to read and
 write concurrently to the same database file (but only one can write at a
-time). See L<http://sqlite.org/wal.html> for more information.
+time). You can prevent this mode from being enabled by passing the option
+C<no_wal>. See L<http://sqlite.org/wal.html> for more information.
 
   # Performed concurrently
   my $pid = fork || die $!;
@@ -398,6 +402,9 @@ passed as the second argument.
 
   # Additional options
   $sql->from_filename($filename, { PrintError => 1 });
+  
+  # Readonly connection without WAL mode
+  $sql->from_filename($filename, { ReadOnly => 1, no_wal => 1 });
 
 =head2 from_string
 
@@ -446,6 +453,9 @@ string, it will be parsed and applied to L</"options">.
   $sql->from_string('data.db?PrintError=1&sqlite_allow_multiple_statements=1');
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
   $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form => {PrintError => 1}));
+
+  # Readonly connection without WAL mode
+  $sql->from_string('data.db?ReadOnly=1&no_wal=1');
 
 =head1 DEBUGGING
 
