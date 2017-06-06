@@ -66,28 +66,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "2.002"
+         "version" : "2.003"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "2.002"
+         "version" : "2.003"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "2.002"
+         "version" : "2.003"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "2.002",
+         "version" : "2.003",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "2.002"
+         "version" : "2.003"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "2.002"
+         "version" : "2.003"
       }
    },
    "release_status" : "stable",
@@ -103,7 +103,7 @@
       },
       "x_IRC" : "irc://irc.perl.org/#mojo"
    },
-   "version" : "2.002",
+   "version" : "2.003",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.026000"
@@ -297,7 +297,7 @@
                   "branch" : null,
                   "changelog" : "Changes",
                   "signed" : 0,
-                  "tag" : "v2.002",
+                  "tag" : "v2.003",
                   "tag_format" : "v%v",
                   "tag_message" : "v%v"
                },
