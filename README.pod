@@ -93,7 +93,9 @@ All I/O and queries are performed synchronously. However, the "Write-Ahead Log"
 journal is enabled for all connections, allowing multiple processes to read and
 write concurrently to the same database file (but only one can write at a
 time). You can prevent this mode from being enabled by passing the option
-C<no_wal>. See L<http://sqlite.org/wal.html> for more information.
+C<no_wal>, but note that this is incompatible with SQLite databases that have
+already had WAL mode enabled. See L<http://sqlite.org/wal.html> and
+L<DBD::SQLite/"journal_mode"> for more information.
 
   # Performed concurrently
   my $pid = fork || die $!;
