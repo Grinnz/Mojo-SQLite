@@ -20,7 +20,7 @@ has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '"') };
 has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
 has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
-has max_connections => 5;
+has max_connections => 1;
 has migrations      => sub {
   my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
   weaken $migrations->{sqlite};
@@ -317,7 +317,7 @@ temporary file.
   $sql    = $sql->max_connections(3);
 
 Maximum number of idle database handles to cache for future use, defaults to
-C<5>.
+C<1>.
 
 =head2 migrations
 

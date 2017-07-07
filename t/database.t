@@ -88,7 +88,7 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
 
 # Connection cache
 {
-  is $sql->max_connections, 5, 'right default';
+  is $sql->max_connections, 1, 'right default';
   my @dbhs = map { $_->dbh } $sql->db, $sql->db, $sql->db, $sql->db, $sql->db;
   is_deeply \@dbhs,
     [map { $_->dbh } $sql->db, $sql->db, $sql->db, $sql->db, $sql->db],
