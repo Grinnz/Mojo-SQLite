@@ -230,10 +230,6 @@ options.
 Another L<Mojo::SQLite> object to use for connection management, instead of
 establishing and caching our own database connections.
 
-=head2 pubsub
-
-This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
-
 =head1 METHODS
 
 L<Mojo::SQLite> inherits all methods from L<Mojo::EventEmitter> and implements

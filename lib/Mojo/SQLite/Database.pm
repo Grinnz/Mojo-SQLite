@@ -1,5 +1,5 @@
 package Mojo::SQLite::Database;
-use Mojo::Base 'Mojo::EventEmitter';
+use Mojo::Base -base;
 
 use Carp qw(croak shortmess);
 use DBI 'SQL_VARCHAR';
@@ -7,21 +7,15 @@ use Mojo::IOLoop;
 use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
-use Mojo::Util qw(deprecated monkey_patch);
+use Mojo::Util 'monkey_patch';
 use Scalar::Util 'weaken';
 
 our $VERSION = '2.003';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
-use constant DEBUG => $ENV{MOJO_PUBSUB_DEBUG} || 0;
-
 has [qw(dbh sqlite)];
-has notification_poll_interval => sub {
-  deprecated 'The notification_poll_interval attribute is deprecated and should no longer be used';
-  return 0.5;
-};
-has results_class              => 'Mojo::SQLite::Results';
+has results_class => 'Mojo::SQLite::Results';
 
 for my $name (qw(delete insert select update)) {
   monkey_patch __PACKAGE__, $name, sub {
@@ -49,51 +43,7 @@ sub begin {
 
 sub disconnect {
   my $self = shift;
-  $self->_unwatch;
   $self->dbh->disconnect;
-}
-
-our $_QUERY_NOTIFICATIONS;
-
-sub is_listening {
-  deprecated 'The is_listening method is deprecated and should no longer be used' unless $_QUERY_NOTIFICATIONS;
-  return !!keys %{shift->{listen} || {}};
-}
-
-sub listen {
-  my ($self, $name) = @_;
-
-  deprecated 'The listen method is deprecated and should no longer be used';
-
-  warn qq{$self listening on channel "$name"\n} if DEBUG;
-  $self->{listen}{$name}++;
-  $self->_init_pubsub;
-  $self->_watch;
-  $self->dbh->do('insert or ignore into mojo_pubsub_listen
-    (listener_id, channel) values (?, ?)', undef, $self->{listener_id}, $name);
-
-  return $self;
-}
-
-sub notify {
-  my ($self, $name, $payload) = @_;
-
-  deprecated 'The notify method is deprecated and should no longer be used';
-
-  $payload //= '';
-  warn qq{$self sending notification on channel "$name": $payload\n} if DEBUG;
-  $self->_init_pubsub;
-
-  my $dbh = $self->dbh;
-  $dbh->do('insert into mojo_pubsub_notify (channel, payload)
-    values (?, ?)', undef, $name, $payload);
-  my $notify_id = $dbh->{private_mojo_last_insert_id} // croak 'Failed to retrieve notify ID';
-  $dbh->do('insert into mojo_pubsub_queue (listener_id, notify_id)
-    select listener_id, ? from mojo_pubsub_listen where channel=?', undef, $notify_id, $name);
-
-  $self->_notifications;
-
-  return $self;
 }
 
 sub ping { shift->dbh->ping }
@@ -131,11 +81,7 @@ sub query {
     $results->{last_insert_id} = $dbh->{private_mojo_last_insert_id};
   }
 
-  unless ($cb) { # blocking
-    local $_QUERY_NOTIFICATIONS = 1; # no deprecated message
-    $self->_notifications;
-    return $results;
-  }
+  return $results unless $cb; # blocking
 
   # Still blocking, but call the callback on the next tick
   $error = $dbh->err ? $dbh->errstr : $errored ? ($error || 'Error running SQLite query') : undef;
@@ -147,26 +93,6 @@ sub tables {
   my @tables = shift->dbh->tables(undef, undef, undef, 'TABLE,VIEW,LOCAL TEMPORARY');
   my %names; # Deduplicate returned temporary table indexes
   return [grep { !$names{$_}++ } @tables];
-}
-
-sub unlisten {
-  my ($self, $name) = @_;
-
-  deprecated 'The unlisten method is deprecated and should no longer be used';
-
-  warn qq{$self is no longer listening on channel "$name"\n} if DEBUG;
-  my $dbh = $self->dbh;
-  if ($name eq '*') {
-    delete $self->{listen};
-    $dbh->do('delete from mojo_pubsub_listen where listener_id=?', undef, $self->{listener_id});
-  } else {
-    delete $self->{listen}{$name};
-    $dbh->do('delete from mojo_pubsub_listen where listener_id=? and channel=?', undef,
-      $self->{listener_id}, $name);
-  }
-  $self->_unwatch unless $self->is_listening;
-
-  return $self;
 }
 
 sub _bind_params {
@@ -187,89 +113,6 @@ sub _bind_params {
     }
   }
   return $sth;
-}
-
-sub _cleanup_pubsub {
-  my $self = shift;
-  # Delete any stale listeners and their queues
-  my $dbh = $self->dbh;
-  my $listener_ids = $dbh->selectcol_arrayref(q{select id from mojo_pubsub_listener
-    where last_checked < strftime('%s','now','-1 days')});
-  if (@$listener_ids) {
-    warn qq{$self cleaning up stale listeners @$listener_ids\n"} if DEBUG;
-    my $in_str = join ',', ('?')x@$listener_ids;
-    $dbh->do("delete from mojo_pubsub_queue where listener_id in ($in_str)", undef, @$listener_ids);
-    $dbh->do("delete from mojo_pubsub_listen where listener_id in ($in_str)", undef, @$listener_ids);
-    $dbh->do("delete from mojo_pubsub_listener where id in ($in_str)", undef, @$listener_ids);
-  }
-  # Delete any notifications that are no longer queued
-  my $notify_ids = $dbh->selectcol_arrayref('select n.id from mojo_pubsub_notify as n
-    left join mojo_pubsub_queue as q on q.notify_id=n.id where q.notify_id is null');
-  if (@$notify_ids) {
-    warn qq{$self cleaning up unqueued notifications @$notify_ids\n} if DEBUG;
-    my $in_str = join ',', ('?')x@$notify_ids;
-    $dbh->do("delete from mojo_pubsub_notify where id in ($in_str)", undef, @$notify_ids);
-  }
-}
-
-sub _init_pubsub {
-  my $self = shift;
-  return $self if $self->{init_pubsub} || $self->{init_pubsub}++;
-  $self->sqlite->migrations->name('pubsub')->from_data->migrate;
-  $self->_cleanup_pubsub;
-}
-
-sub _notifications {
-  my $self = shift;
-  if ($self->is_listening) {
-    my $dbh = $self->dbh;
-    $dbh->do(q{update mojo_pubsub_listener set last_checked=strftime('%s','now')
-      where id=?}, undef, $self->{listener_id});
-    my $notifies = $dbh->selectall_arrayref('select n.id, n.channel, n.payload
-      from mojo_pubsub_notify as n inner join mojo_pubsub_queue as q on q.notify_id=n.id
-      where q.listener_id=? order by n.id asc', { Slice => {} }, $self->{listener_id});
-    if ($notifies and @$notifies) {
-      do { my @ids = map { $_->{id} } @$notifies; warn qq{$self has received notifications @ids\n} } if DEBUG;
-      my $in_str = join ',', ('?')x@$notifies;
-      $dbh->do("delete from mojo_pubsub_queue where listener_id=? and notify_id in ($in_str)", undef,
-        $self->{listener_id}, map { $_->{id} } @$notifies);
-      $self->_cleanup_pubsub;
-      foreach my $notify (@$notifies) {
-        $self->emit(notification => @{$notify}{qw(channel payload)})
-          if exists $self->{listen}{$notify->{channel}};
-      }
-    }
-  }
-}
-
-sub _unwatch {
-  my $self = shift;
-  return $self unless delete $self->{watching};
-  warn qq{$self is no longer watching for notifications\n} if DEBUG;
-  Mojo::IOLoop->remove($self->{pubsub_timer});
-  my $pid = delete $self->{listener_pid};
-  if ($pid and $pid eq $$) {
-    local $@;
-    eval { $self->dbh->do('delete from mojo_pubsub_listener where id=?', undef, delete $self->{listener_id}) };
-  }
-  $self->emit('close') if $self->is_listening;
-}
-
-sub _watch {
-  my $self = shift;
-  return $self if $self->{watching} || $self->{watching}++;
-  warn qq{$self now watching for notifications\n} if DEBUG;
-  Mojo::IOLoop->remove($self->{pubsub_timer}) if exists $self->{pubsub_timer};
-  my $interval = $self->notification_poll_interval;
-  $self->{pubsub_timer} = Mojo::IOLoop->recurring($interval => sub {
-    local $@;
-    $self->_unwatch if !eval { $self->_notifications; 1 }
-      or !$self->is_listening;
-  });
-  my $dbh = $self->dbh;
-  $dbh->do('insert into mojo_pubsub_listener default values');
-  $self->{listener_id} = $dbh->{private_mojo_last_insert_id} // die 'Unable to retrieve listener ID';
-  $self->{listener_pid} = $$;
 }
 
 1;
@@ -293,30 +136,6 @@ Mojo::SQLite::Database - Database
 L<Mojo::SQLite::Database> is a container for L<DBD::SQLite> database handles
 used by L<Mojo::SQLite>.
 
-=head1 EVENTS
-
-L<Mojo::SQLite::Database> inherits all events from L<Mojo::EventEmitter> and
-can emit the following new ones.
-
-=head2 close
-
-  $db->on(close => sub {
-    my $db = shift;
-    ...
-  });
-
-Emitted when the database connection gets closed while waiting for
-notifications.
-
-=head2 notification
-
-  $db->on(notification => sub {
-    my ($db, $name, $payload) = @_;
-    ...
-  });
-
-Emitted when a notification has been received.
-
 =head1 ATTRIBUTES
 
 L<Mojo::SQLite::Database> implements the following attributes.
@@ -330,10 +149,6 @@ L<DBD::SQLite> database handle used for all queries.
 
   # Use DBI utility methods
   my $quoted = $db->dbh->quote_identifier('foo.bar');
-
-=head2 notification_poll_interval
-
-This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head2 results_class
 
@@ -432,18 +247,6 @@ L<SQL::Abstract>.
   # "insert into some_table (foo, baz) values ('bar', 'yada')"
   $db->insert('some_table', {foo => 'bar', baz => 'yada'});
 
-=head2 is_listening
-
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
-
-=head2 listen
-
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
-
-=head2 notify
-
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
-
 =head2 ping
 
   my $bool = $db->ping;
@@ -530,10 +333,6 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
   # Names of all tables
   say for @{$db->tables};
 
-=head2 unlisten
-
-This method is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
-
 =head2 update
 
   my $results = $db->update($table, \%fieldvals, \%where);
@@ -576,47 +375,3 @@ the terms of the Artistic License version 2.0.
 =head1 SEE ALSO
 
 L<Mojo::SQLite>
-
-=cut
-
-__DATA__
-
-@@ pubsub
--- 1 down
-drop table mojo_pubsub_listener;
-drop table mojo_pubsub_listen;
-drop table mojo_pubsub_notify;
-drop table mojo_pubsub_queue;
-
--- 1 up
-drop table if exists mojo_pubsub_listener;
-drop table if exists mojo_pubsub_listen;
-drop table if exists mojo_pubsub_notify;
-drop table if exists mojo_pubsub_queue;
-
-create table mojo_pubsub_listener (
-  id integer primary key autoincrement,
-  last_checked integer not null default (strftime('%s','now'))
-);
-create index mojo_listener_last_checked_idx on mojo_pubsub_listener (last_checked);
-
-create table mojo_pubsub_listen (
-  listener_id integer not null,
-  channel text not null,
-  primary key (listener_id, channel)
-);
-create index mojo_listen_channel_idx on mojo_pubsub_listen (channel);
-
-create table mojo_pubsub_notify (
-  id integer primary key autoincrement,
-  channel text not null,
-  payload text not null default ''
-);
-create index mojo_notify_channel_idx on mojo_pubsub_notify (channel);
-
-create table mojo_pubsub_queue (
-  listener_id integer not null,
-  notify_id integer not null,
-  primary key (listener_id, notify_id)
-);
-create index mojo_queue_notify_id_idx on mojo_pubsub_queue (notify_id);

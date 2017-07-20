@@ -1,9 +1,13 @@
 {{$NEXT}}
-  - Change default for max_connections attribute to 1.
-  - Add support for sharing the database connection cache between multiple
+  - Changed default for max_connections attribute to 1.
+  - Added support for sharing the database connection cache between multiple
     Mojo::SQLite objects. (based on Mojo::Pg 4.0)
-  - Add parent attribute to Mojo::SQLite.
+  - Added parent attribute to Mojo::SQLite.
   - Fixed database connection leak with automatic migrations.
+  - Removed deprecated Mojo::SQLite::PubSub and associated methods and attributes.
+    SQLite's serverless nature means it does not have the ability to support
+    client notifications, so it is not possible to implement an efficient
+    pubsub system as in for example PostgreSQL, Redis, or websockets.
 
 2.002     2017-06-01 14:16:34 EDT
   - Add no_wal option to prevent enabling WAL mode on connection.

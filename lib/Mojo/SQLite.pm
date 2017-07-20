@@ -8,7 +8,6 @@ use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
 use Mojo::SQLite::Migrations;
-use Mojo::SQLite::PubSub;
 use Scalar::Util qw(blessed weaken);
 use SQL::Abstract;
 use URI;
@@ -36,11 +35,6 @@ has options => sub {
   };
 };
 has 'parent';
-has pubsub => sub {
-  my $pubsub = Mojo::SQLite::PubSub->new(sqlite => shift);
-  weaken $pubsub->{sqlite};
-  return $pubsub;
-};
 
 sub new { @_ > 1 ? shift->SUPER::new->from_string(@_) : shift->SUPER::new }
 
@@ -366,10 +360,6 @@ options.
 
 Another L<Mojo::SQLite> object to use for connection management, instead of
 establishing and caching our own database connections.
-
-=head2 pubsub
-
-This attribute is L<DEPRECATED|Mojo::SQLite::PubSub/"DESCRIPTION">.
 
 =head1 METHODS
 
