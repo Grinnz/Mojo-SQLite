@@ -195,6 +195,26 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   $sql->unsubscribe('connection');
 }
 
+# Shared connection cache
+{
+  my $sql2 = Mojo::SQLite->new($sql);
+  is $sql2->parent, $sql, 'right parent';
+  my $dbh = $sql->db->dbh;
+  is $sql->db->dbh,  $dbh, 'same database handle';
+  is $sql2->db->dbh, $dbh, 'same database handle';
+  is $sql->db->dbh,  $dbh, 'same database handle';
+  is $sql2->db->dbh, $dbh, 'same database handle';
+  my $db = $sql->db;
+  is_deeply $db->query('select 1 as one')->hashes->to_array, [{one => 1}],
+    'right structure';
+  $dbh = $db->dbh;
+  $db->disconnect;
+  $db = $sql2->db;
+  is_deeply $db->query('select 1 as one')->hashes->to_array, [{one => 1}],
+    'right structure';
+  isnt $db->dbh, $dbh, 'different database handle';
+}
+
 # Blocking error
 eval { $sql->db->query('does_not_exist') };
 like $@, qr/does_not_exist.*database\.t/s, 'right error';

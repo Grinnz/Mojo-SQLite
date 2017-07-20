@@ -1,5 +1,9 @@
 {{$NEXT}}
   - Change default for max_connections attribute to 1.
+  - Add support for sharing the database connection cache between multiple
+    Mojo::SQLite objects. (based on Mojo::Pg 4.0)
+  - Add parent attribute to Mojo::SQLite.
+  - Fixed database connection leak with automatic migrations.
 
 2.002     2017-06-01 14:16:34 EDT
   - Add no_wal option to prevent enabling WAL mode on connection.

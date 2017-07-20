@@ -104,8 +104,8 @@ is $sql->migrations->migrate(0)->active,  0, 'active version is 0';
 is $sql2->migrations->migrate(0)->active, 0, 'active version is 0';
 
 # Migrate automatically
-$sql = Mojo::SQLite->new->from_filename($tempfile);
-$sql->migrations->name('migrations_test')->from_string(<<EOF);
+my $sql3 = Mojo::SQLite->new->from_filename($tempfile);
+$sql3->migrations->name('migrations_test')->from_string(<<'EOF');
 -- 5 up
 create table if not exists migration_test_six (foo text);
 -- 6 up
@@ -115,14 +115,24 @@ drop table if exists migration_test_six;
 -- 6 down
 delete from migration_test_six;
 EOF
-$sql->auto_migrate(1)->db;
-is $sql->migrations->active, 6, 'active version is 6';
-is_deeply $sql->db->query('select * from migration_test_six')->hashes,
+$sql3->auto_migrate(1)->db;
+is $sql3->migrations->active, 6, 'active version is 6';
+is_deeply $sql3->db->query('select * from migration_test_six')->hashes,
   [{foo => 'works!'}], 'right structure';
-is $sql->migrations->migrate(5)->active, 5, 'active version is 5';
-is_deeply $sql->db->query('select * from migration_test_six')->hashes, [],
+is $sql3->migrations->migrate(5)->active, 5, 'active version is 5';
+is_deeply $sql3->db->query('select * from migration_test_six')->hashes, [],
   'right structure';
-is $sql->migrations->migrate(0)->active, 0, 'active version is 0';
+is $sql3->migrations->migrate(0)->active, 0, 'active version is 0';
+
+# Migrate automatically with shared connection cache
+my $sql4 = Mojo::SQLite->new->from_filename($tempfile);
+my $sql5 = Mojo::SQLite->new($sql4);
+$sql4->auto_migrate(1)->migrations->name('test1')->from_data;
+$sql5->auto_migrate(1)->migrations->name('test3')->from_data;
+is_deeply $sql5->db->query('select * from migration_test_four')
+  ->hashes->to_array, [{test => 10}], 'right structure';
+is_deeply $sql5->db->query('select * from migration_test_six')->hashes->to_array,
+  [], 'right structure';
 
 # Unknown version
 eval { $sql->migrations->migrate(23) };
@@ -155,7 +165,7 @@ done_testing();
 __DATA__
 @@ test1
 -- 7 up
-create table migration_test_four (test integer));
+create table migration_test_four (test integer);
 
 -- 10 up
 insert into migration_test_four values (10);
@@ -163,3 +173,7 @@ insert into migration_test_four values (10);
 @@ test2
 -- 2 up
 create table migration_test_five (test integer);
+
+@@ test3
+-- 2 up
+create table migration_test_six (test integer);
