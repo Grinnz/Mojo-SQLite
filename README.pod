@@ -61,7 +61,9 @@ Mojo::SQLite - A tiny Mojolicious wrapper for SQLite
 
 L<Mojo::SQLite> is a tiny wrapper around L<DBD::SQLite> that makes
 L<SQLite|https://www.sqlite.org/> a lot of fun to use with the
-L<Mojolicious|https://mojolico.us> real-time web framework.
+L<Mojolicious|https://mojolico.us> real-time web framework. Use all
+L<SQL features|http://sqlite.org/lang.html> SQLite has to offer, generate CRUD
+queries from data structures, and manage your database schema with migrations.
 
 Database and statement handles are cached automatically, so they can be reused
 transparently to increase performance. And you can handle connection timeouts
