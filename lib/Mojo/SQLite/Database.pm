@@ -10,7 +10,7 @@ use Mojo::SQLite::Transaction;
 use Mojo::Util 'monkey_patch';
 use Scalar::Util 'weaken';
 
-our $VERSION = '2.003';
+our $VERSION = '3.001';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
