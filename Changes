@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.000     2017-07-20 01:16:50 EDT
   - Changed default for max_connections attribute to 1.
   - Added support for sharing the database connection cache between multiple
     Mojo::SQLite objects. (based on Mojo::Pg 4.0)
