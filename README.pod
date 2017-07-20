@@ -194,7 +194,7 @@ temporary file.
   $sql    = $sql->max_connections(3);
 
 Maximum number of idle database handles to cache for future use, defaults to
-C<5>.
+C<1>.
 
 =head2 migrations
 

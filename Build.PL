@@ -94,7 +94,7 @@ EOW
         "DBI" => "1.627",
         "File::Spec::Functions" => 0,
         "File::Temp" => 0,
-        "Mojolicious" => "7.15",
+        "Mojolicious" => "7.32",
         "SQL::Abstract" => "1.81",
         "Scalar::Util" => 0,
         "URI" => "1.69",

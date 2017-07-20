@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Change default for max_connections attribute to 1.
 
 2.002     2017-06-01 14:16:34 EDT
   - Add no_wal option to prevent enabling WAL mode on connection.
