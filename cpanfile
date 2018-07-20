@@ -1,7 +1,7 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
 requires 'DBI'             => '1.627';
-requires 'DBD::SQLite'     => '1.50'; # for json support
+requires 'DBD::SQLite'     => '1.54'; # for JSON1 and FTS5 support
 requires 'File::Spec::Functions';
 requires 'File::Temp';
 requires 'Mojolicious'     => '7.32';
