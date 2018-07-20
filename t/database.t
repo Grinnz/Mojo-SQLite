@@ -20,16 +20,19 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
 # Non-blocking select
 {
   my ($fail, $result);
+  my $same;
   my $db = $sql->db;
   $db->query(
     'select 1 as one, 2 as two, 3 as three' => sub {
       my ($db, $err, $results) = @_;
       $fail   = $err;
       $result = $results->hash;
+      $same   = $db->dbh eq $results->db->dbh;
       Mojo::IOLoop->stop;
     }
   );
   Mojo::IOLoop->start;
+  ok $same, 'same database handles';
   ok !$fail, 'no error';
   is_deeply $result, {one => 1, two => 2, three => 3}, 'right structure';
 }
@@ -121,6 +124,22 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   isnt $db->query('select 5 as five')->sth, $sth, 'different statement handles';
   isnt $db->query('select 6 as six')->sth,  $sth, 'different statement handles';
   is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
+}
+
+# Connection reuse
+{
+  my $db      = $sql->db;
+  my $dbh     = $db->dbh;
+  my $results = $db->query('select 1');
+  undef $db;
+  my $db2 = $sql->db;
+  isnt $db2->dbh, $dbh, 'new database handle';
+  undef $results;
+  my $db3 = $sql->db;
+  is $db3->dbh, $dbh, 'same database handle';
+  $results = $db3->query('select 2');
+  is $results->db->dbh, $dbh, 'same database handle';
+  is $results->array->[0], 2, 'right result';
 }
 
 # Bind types

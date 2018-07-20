@@ -7,7 +7,7 @@ use Mojo::Util 'tablify';
 
 our $VERSION = '3.001';
 
-has 'sth';
+has [qw(db sth)];
 
 sub new {
   my $self = shift->SUPER::new(@_);
@@ -89,6 +89,13 @@ used by L<Mojo::SQLite::Database>.
 
 L<Mojo::SQLite::Results> implements the following attributes.
 
+=head2 db
+
+  my $db   = $results->db;
+  $results = $results->db(Mojo::SQLite::Database->new);
+
+L<Mojo::SQLite::Database> object these results belong to.
+
 =head2 sth
 
   my $sth  = $results->sth;
@@ -129,7 +136,7 @@ Fetch all rows from L</"sth"> and return them as a L<Mojo::Collection> object
 containing array references.
 
   # Process all rows at once
-  say $results->arrays->reduce(sub { $a->[3] + $b->[3] });
+  say $results->arrays->reduce(sub { $a + $b->[3] }, 0);
 
 =head2 columns
 
@@ -180,7 +187,7 @@ Fetch all rows from L</"sth"> and return them as a L<Mojo::Collection> object
 containing hash references.
 
   # Process all rows at once
-  say $results->hashes->reduce(sub { $a->{money} + $b->{money} });
+  say $results->hashes->reduce(sub { $a + $b->{money} }, 0);
 
 =head2 last_insert_id
 
