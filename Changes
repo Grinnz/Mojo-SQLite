@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.001     2018-07-20 20:25:12 EDT
   - Increase DBD::SQLite dependency to 1.54 for FTS5 support.
   - Add db attribute to Mojo::SQLite::Results and use it to prevent connections
     from being cached for reuse while results are active.
