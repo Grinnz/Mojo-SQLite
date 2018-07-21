@@ -2,6 +2,7 @@
   - Increase DBD::SQLite dependency to 1.54 for FTS5 support.
   - Add db attribute to Mojo::SQLite::Results and use it to prevent connections
     from being cached for reuse while results are active.
+  - Add sql_for method to Mojo::SQLite::Migrations.
 
 3.000     2017-07-20 01:16:50 EDT
   - Changed default for max_connections attribute to 1.

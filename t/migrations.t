@@ -123,6 +123,22 @@ is $sql3->migrations->migrate(5)->active, 5, 'active version is 5';
 is_deeply $sql3->db->query('select * from migration_test_six')->hashes, [],
   'right structure';
 is $sql3->migrations->migrate(0)->active, 0, 'active version is 0';
+is $sql3->migrations->sql_for(0, 5), <<EOF, 'right SQL';
+-- 5 up
+create table if not exists migration_test_six (foo text);
+EOF
+is $sql3->migrations->sql_for(6, 0), <<EOF, 'right SQL';
+-- 6 down
+delete from migration_test_six;
+-- 5 down
+drop table if exists migration_test_six;
+EOF
+is $sql3->migrations->sql_for(6, 5), <<EOF, 'right SQL';
+-- 6 down
+delete from migration_test_six;
+EOF
+is $sql3->migrations->sql_for(6, 6), '', 'right SQL';
+is $sql3->migrations->sql_for(2, 3), '', 'right SQL';
 
 # Migrate automatically with shared connection cache
 my $sql4 = Mojo::SQLite->new->from_filename($tempfile);

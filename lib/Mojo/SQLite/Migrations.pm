@@ -61,19 +61,7 @@ sub migrate {
   croak "Active version $active is greater than the latest version $latest"
     if $active > $latest;
 
-  # Up
-  my $query;
-  if ($active < $target) {
-    my @up = grep { $_ <= $target && $_ > $active } keys %$up;
-    $query = join '', @$up{sort { $a <=> $b } @up};
-  }
-
-  # Down
-  else {
-    my @down = grep { $_ > $target && $_ <= $active } keys %$down;
-    $query = join '', @$down{reverse sort { $a <=> $b } @down};
-  }
-
+  my $query = $self->sql_for($active, $target);
   warn "-- Migrate ($active -> $target)\n$query\n" if DEBUG;
   local $db->dbh->{sqlite_allow_multiple_statements} = 1;
 
@@ -98,6 +86,21 @@ sub migrate {
     $target, $self->name) and $tx->commit;
 
   return $self;
+}
+
+sub sql_for {
+  my ($self, $from, $to) = @_;
+
+  # Up
+  my ($up, $down) = @{$self->{migrations}}{qw(up down)};
+  if ($from < $to) {
+    my @up = grep { $_ <= $to && $_ > $from } keys %$up;
+    return join '', @$up{sort { $a <=> $b } @up};
+  }
+
+  # Down
+  my @down = grep { $_ > $to && $_ <= $from } keys %$down;
+  return join '', @$down{reverse sort { $a <=> $b } @down};
 }
 
 sub _active {
@@ -245,6 +248,12 @@ representing an empty database.
 
   # Reset database
   $migrations->migrate(0)->migrate;
+
+=head2 sql_for
+
+  my $sql = $migrations->sql_for(5, 10);
+
+Get SQL to migrate from one version to another, up or down.
 
 =head1 DEBUGGING
 
