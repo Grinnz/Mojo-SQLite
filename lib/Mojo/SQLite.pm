@@ -196,6 +196,8 @@ L<Mojolicious|https://mojolico.us> real-time web framework. Use all
 L<SQL features|http://sqlite.org/lang.html> SQLite has to offer, generate CRUD
 queries from data structures, and manage your database schema with migrations.
 
+=head1 BASICS
+
 Database and statement handles are cached automatically, so they can be reused
 transparently to increase performance. And you can handle connection timeouts
 gracefully by holding on to them only for short amounts of time.
@@ -260,6 +262,17 @@ L<additional temporary files|https://www.sqlite.org/tempfiles.html> safely.
   my $tempfile = catfile $tempdir, 'test.db';
   my $sql = Mojo::SQLite->new->from_filename($tempfile);
 
+L<SQL::Abstract::Pg> can provide additional features to the L<SQL::Abstract>
+query methods in L<Mojo::SQLite::Database>. The C<on_conflict> and C<for>
+features are not applicable to SQLite queries.
+
+  use SQL::Abstract::Pg;
+  my $sql = Mojo::SQLite->new(abstract => SQL::Abstract::Pg->new(name_sep => '.', quote_char => '"'));
+  $sql->db->select(['some_table', ['other_table', foo_id => 'id']],
+    ['foo', [bar => 'baz'], \q{datetime('now') as dt}],
+    {foo => 'value'},
+    {order_by => 'foo', limit => 10, offset => 5, group_by => ['foo'], having => {baz => 'value'}});
+
 =head1 EXAMPLES
 
 This distribution also contains a well-structured example
@@ -292,7 +305,8 @@ L<Mojo::SQLite> implements the following attributes.
 
 L<SQL::Abstract> object used to generate CRUD queries for
 L<Mojo::SQLite::Database>, defaults to setting C<name_sep> to C<.> and
-C<quote_char> to C<">.
+C<quote_char> to C<">. L<SQL::Abstract::Pg> may be used to provide additional
+features.
 
   # Generate WHERE clause and bind values
   my($stmt, @bind) = $sql->abstract->where({foo => 'bar', baz => 'yada'});
