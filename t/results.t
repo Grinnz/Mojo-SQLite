@@ -154,6 +154,33 @@ my $sql = Mojo::SQLite->new;
     undef $results1;
     is_deeply $results2->hashes, [{one => 1}], 'right structure';
   }
+
+  { # insert or ignore interaction with last_insert_id
+    my $results_fail =
+      $db->query(q|insert or ignore into results_test (id, name) values (1, 'tx9')|);
+    is $results_fail->last_insert_id, 0, 'no insert after select';
+
+    my $results_ok =
+      $db->query(q|insert or ignore into results_test (name) values ('tx10')|);
+    ok $results_ok->last_insert_id > 0, 'non zero means success';
+
+    $results_fail =
+      $db->query(q|insert or ignore into results_test (id, name) values (1, 'tx11')|);
+    is $results_fail->last_insert_id, 0, 'no insert after insert';
+
+    $results_ok =
+      $db->query(q|insert or ignore into results_test (name) values ('tx12')|);
+    ok $results_ok->last_insert_id > 0, 'non zero means success';
+
+    $results_fail =
+      $db->query(q|insert or ignore into results_test (id, name) values (1, 'tx11')|);
+    ok $results_fail->last_insert_id > 0, 'apparent insert - cached sth (FEATURE)';
+
+    my $tx = $db->begin; # authorizer not called on cached sth without tx begin
+    $results_fail =
+      $db->query(q|insert or ignore into results_test (id, name) values (1, 'tx11')|);
+    is $results_fail->last_insert_id, 0, 'no insert - cached sth';
+  }
 }
 
 done_testing();

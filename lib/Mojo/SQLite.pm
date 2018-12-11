@@ -89,6 +89,12 @@ sub _dequeue {
 
   # Cache the last insert rowid on inserts
   weaken(my $weakdbh = $dbh);
+  $dbh->sqlite_set_authorizer(sub {
+    $weakdbh->{private_mojo_last_insert_id} = 0 if $_[0] == DBD::SQLite::INSERT;
+    $weakdbh->{private_mojo_last_insert_id} = 0
+      if $_[0] == DBD::SQLite::TRANSACTION && $_[1] eq 'BEGIN';
+    return DBD::SQLite::OK;
+  });
   $dbh->sqlite_update_hook(sub {
     $weakdbh->{private_mojo_last_insert_id} = $_[3] if $_[0] == DBD::SQLite::INSERT;
   });
