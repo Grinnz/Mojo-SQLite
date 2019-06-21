@@ -15,7 +15,7 @@ use URI::db;
 
 our $VERSION = '3.002';
 
-has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '"') };
+has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '`') };
 has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
 has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };

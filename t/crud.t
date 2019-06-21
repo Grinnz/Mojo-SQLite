@@ -75,6 +75,12 @@ my $sql = Mojo::SQLite->new;
   is_deeply $db->select('main.crud_test2')->hashes->to_array,
     [{id => 1, 't e s t' => 'foo'}, {id => 2, 't e s t' => 'bar'}],
     'right structure';
+
+  # Unresolved identifier
+  is_deeply $db->select('main.crud_test2', undef, {'t e s t' => 'foo'})
+    ->hashes->to_array, [{id => 1, 't e s t' => 'foo'}], 'rigth structure';
+  ok !eval { $db->select('main.crud_test2', undef, {'test' => 'foo'}); 1 },
+    'unknown column';
 }
 
 done_testing();

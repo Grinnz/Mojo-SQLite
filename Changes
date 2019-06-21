@@ -1,4 +1,7 @@
 {{$NEXT}}
+  - Changed default SQL::Abstract identifier quoting character to `, as double
+    quoted identifiers may be interpreted as string literals if they are not
+    valid identifiers. https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted
 
 3.001     2018-07-20 20:25:12 EDT
   - Increase DBD::SQLite dependency to 1.54 for FTS5 support.
