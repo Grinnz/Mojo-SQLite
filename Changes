@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.002     2019-06-21 17:41:35 EDT
   - Changed default SQL::Abstract identifier quoting character to `, as double
     quoted identifiers may be interpreted as string literals if they are not
     valid identifiers. https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted

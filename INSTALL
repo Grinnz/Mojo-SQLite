@@ -53,6 +53,19 @@ distribution's installer can be run.  They can be found under the
 "configure_requires" key of META.yml or the
 "{prereqs}{configure}{requires}" key of META.json.
 
+## Other Prerequisites
+
+This distribution may require additional modules to be installed after running
+Build.PL.
+Look for prerequisites in the following phases:
+
+* to run ./Build, PHASE = build
+* to use the module code itself, PHASE = runtime
+* to run tests, PHASE = test
+
+They can all be found in the "PHASE_requires" key of MYMETA.yml or the
+"{prereqs}{PHASE}{requires}" key of MYMETA.json.
+
 ## Documentation
 
 Mojo-SQLite documentation is available as POD.
