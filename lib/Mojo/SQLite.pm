@@ -4,6 +4,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Carp 'croak';
 use DBI;
 use DBD::SQLite;
+use DBD::SQLite::Constants ':database_connection_configuration_options';
 use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
@@ -15,7 +16,7 @@ use URI::db;
 
 our $VERSION = '3.003';
 
-has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '`') };
+has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '"') };
 has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
 has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
@@ -82,6 +83,8 @@ sub _dequeue {
   
   my $dbh = DBI->connect($self->dsn, undef, undef, $self->options)
     // croak "DBI connection to @{[$self->dsn]} failed: $DBI::errstr"; # RaiseError disabled
+  $dbh->sqlite_db_config(SQLITE_DBCONFIG_DQS_DDL, 0);
+  $dbh->sqlite_db_config(SQLITE_DBCONFIG_DQS_DML, 0);
   unless ($self->options->{no_wal}) {
     $dbh->do('pragma journal_mode=WAL');
     $dbh->do('pragma synchronous=NORMAL');

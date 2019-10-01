@@ -258,6 +258,9 @@ like $@, qr/does_not_exist.*database\.t/s, 'right error';
 eval { $sql->db->query('select * from table_does_not_exist') };
 like $@, qr/database\.t/, 'right error';
 
+# Double-quoted literal
+ok !eval { $sql->db->query('select "does_not_exist"') }, 'no double-quoted string literals';
+
 # WAL mode option
 {
   my $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
