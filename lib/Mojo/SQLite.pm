@@ -14,7 +14,7 @@ use SQL::Abstract;
 use URI;
 use URI::db;
 
-our $VERSION = '3.003';
+our $VERSION = '3.004';
 
 has abstract => sub { SQL::Abstract->new(name_sep => '.', quote_char => '"') };
 has 'auto_migrate';
