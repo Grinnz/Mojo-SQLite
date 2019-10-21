@@ -190,8 +190,8 @@ L<Mojo::SQLite::Transaction/"commit"> has been called before it is destroyed.
 
 A transaction locking behavior of C<deferred>, C<immediate>, or C<exclusive>
 may optionally be passed; the default in L<DBD::SQLite> is currently
-C<immediate>. See L<DBD::SQLite/"Transaction and Database Locking"> for more
-details.
+C<immediate>. See L<DBD::SQLite/"Transaction and Database Locking"> and
+L<https://sqlite.org/lang_transaction.html> for more details.
 
 =head2 delete
 
