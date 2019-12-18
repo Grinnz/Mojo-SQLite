@@ -1,4 +1,9 @@
 {{$NEXT}}
+  - The Mojo::SQLite::Migrations sqlite attribute and the
+    Mojo::SQLite::Transaction db attribute are now weak attributes, increasing
+    the required version of Mojolicious to 8.03.
+  - Defer loading of Mojo::IOLoop unless the callback compatibility API is
+    used.
 
 3.003     2019-10-01 15:49:43 EDT
   - Increase DBD::SQLite dependency to 1.64 to support configuring

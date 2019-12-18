@@ -11,7 +11,7 @@ use constant DEBUG => $ENV{MOJO_MIGRATIONS_DEBUG} || 0;
 our $VERSION = '3.004';
 
 has name => 'migrations';
-has 'sqlite';
+has sqlite => undef, weak => 1;
 
 sub active { $_[0]->_active($_[0]->sqlite->db) }
 
@@ -183,7 +183,8 @@ Name for this set of migrations, defaults to C<migrations>.
   my $sql     = $migrations->sqlite;
   $migrations = $migrations->sqlite(Mojo::SQLite->new);
 
-L<Mojo::SQLite> object these migrations belong to.
+L<Mojo::SQLite> object these migrations belong to. Note that this attribute is
+weakened.
 
 =head1 METHODS
 

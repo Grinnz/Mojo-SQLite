@@ -3,12 +3,10 @@ use Mojo::Base -base;
 
 use Carp qw(croak shortmess);
 use DBI 'SQL_VARCHAR';
-use Mojo::IOLoop;
 use Mojo::JSON 'to_json';
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Mojo::Util 'monkey_patch';
-use Scalar::Util 'weaken';
 
 our $VERSION = '3.004';
 
@@ -36,9 +34,7 @@ sub DESTROY {
 
 sub begin {
   my ($self, $behavior) = @_;
-  my $tx = Mojo::SQLite::Transaction->new(db => $self, behavior => $behavior);
-  weaken $tx->{db};
-  return $tx;
+  return Mojo::SQLite::Transaction->new(db => $self, behavior => $behavior);
 }
 
 sub disconnect {
@@ -85,6 +81,7 @@ sub query {
 
   # Still blocking, but call the callback on the next tick
   $error = $dbh->err ? $dbh->errstr : $errored ? ($error || 'Error running SQLite query') : undef;
+  require Mojo::IOLoop;
   Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
   return $self;
 }

@@ -21,11 +21,7 @@ has 'auto_migrate';
 has database_class  => 'Mojo::SQLite::Database';
 has dsn             => sub { _url_from_file(shift->_tempfile)->dbi_dsn };
 has max_connections => 1;
-has migrations      => sub {
-  my $migrations = Mojo::SQLite::Migrations->new(sqlite => shift);
-  weaken $migrations->{sqlite};
-  return $migrations;
-};
+has migrations      => sub { Mojo::SQLite::Migrations->new(sqlite => shift) };
 has options => sub {
   {
     AutoCommit          => 1,

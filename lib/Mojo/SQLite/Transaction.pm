@@ -5,7 +5,7 @@ use Carp 'croak';
 
 our $VERSION = '3.004';
 
-has 'db';
+has db => undef, weak => 1;
 
 my %behaviors = map { ($_ => 1) } qw(deferred immediate exclusive);
 
@@ -58,7 +58,8 @@ L<Mojo::SQLite::Transaction> implements the following attributes.
   my $db = $tx->db;
   $tx    = $tx->db(Mojo::SQLite::Database->new);
 
-L<Mojo::SQLite::Database> object this transaction belongs to.
+L<Mojo::SQLite::Database> object this transaction belongs to. Note that this
+attribute is weakened.
 
 =head1 METHODS
 
