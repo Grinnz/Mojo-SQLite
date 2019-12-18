@@ -118,7 +118,7 @@ sub _active {
 
   $db->query(
     'create table if not exists mojo_migrations (
-       name    text unique not null,
+       name    text not null primary key,
        version integer not null check (version >= 0)
      )'
   ) if !$results or $results->sth->err;
