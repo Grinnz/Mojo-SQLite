@@ -6,6 +6,7 @@
     used.
   - Newly created mojo_migrations tables from Mojo::SQLite::Migrations will use
     a primary key.
+  - Allow -json parameters in queries.
 
 3.003     2019-10-01 15:49:43 EDT
   - Increase DBD::SQLite dependency to 1.64 to support configuring

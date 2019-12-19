@@ -102,8 +102,10 @@ sub _bind_params {
         $sth->bind_param($i+1, $param->{value}, $param->{type});
       } elsif (exists $param->{json}) {
         $sth->bind_param($i+1, to_json($param->{json}), SQL_VARCHAR);
+      } elsif (exists $param->{-json}) {
+        $sth->bind_param($i+1, to_json($param->{-json}), SQL_VARCHAR);
       } else {
-        croak qq{Unknown parameter hashref (no "type"/"value" or "json")};
+        croak qq{Unknown parameter hashref (no "type"/"value", "json" or "-json")};
       }
     } else {
       $sth->bind_param($i+1, $param);
@@ -275,10 +277,11 @@ Hash reference arguments containing C<type> and C<value> elements will use the
 specified bind type for the parameter, using types from L<DBI/"DBI Constants">;
 see L<DBD::SQLite/"Blobs"> and the subsequent section for more information.
 
-Hash reference arguments containing a value named C<json> will be encoded to
-L<JSON text|http://sqlite.org/json1.html> with L<Mojo::JSON/"to_json">. To
-accomplish the reverse, you can use the method L<Mojo::SQLite::Results/"expand">
-to decode JSON text fields to Perl values with L<Mojo::JSON/"from_json">.
+Hash reference arguments containing a value named C<json> or C<-json> will be
+encoded to L<JSON text|http://sqlite.org/json1.html> with
+L<Mojo::JSON/"to_json">. To accomplish the reverse, you can use the method
+L<Mojo::SQLite::Results/"expand"> to decode JSON text fields to Perl values
+with L<Mojo::JSON/"from_json">.
 
   # "I ♥ SQLite!"
   $db->query('select ? as foo', {json => {bar => 'I ♥ SQLite!'}})

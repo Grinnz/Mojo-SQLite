@@ -67,6 +67,8 @@ my $sql = Mojo::SQLite->new;
   # JSON
   is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
     ->expand(json => 'foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
+  is_deeply $db->query('select ? as foo', {-json => {bar => 'baz'}})
+    ->expand(json => 'foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
   is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
     ->expand(json => 'foo')->array, [{bar => 'baz'}], 'right structure';
   my $hashes = [{foo => {one => 1}, bar => 'a'}, {foo => {two => 2}, bar => 'b'}];
