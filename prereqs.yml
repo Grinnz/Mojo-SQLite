@@ -1,0 +1,17 @@
+runtime:
+  requires:
+    perl: '5.010001'
+    Carp: 0
+    DBI: '1.627'
+    DBD::SQLite: '1.64' # for JSON1, FTS5, DQS
+    File::Spec::Functions: 0
+    File::Temp: 0
+    Mojolicious: '8.03'
+    Scalar::Util: 0
+    SQL::Abstract: '1.81'
+    URI: '1.69'
+    URI::db: '0.15'
+    URI::file: '4.21'
+test:
+  requires:
+    Test::More: '0.88'
