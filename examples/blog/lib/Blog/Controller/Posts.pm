@@ -50,8 +50,8 @@ sub _validation {
   my $self = shift;
 
   my $validation = $self->validation;
-  $validation->required('title');
-  $validation->required('body');
+  $validation->required('title', 'not_empty');
+  $validation->required('body',  'not_empty');
 
   return $validation;
 }
