@@ -209,7 +209,7 @@ gracefully by holding on to them only for short amounts of time.
   get '/' => sub {
     my $c  = shift;
     my $db = $c->sqlite->db;
-    $c->render(json => $db->query('select datetime("now","localtime") as now')->hash);
+    $c->render(json => $db->query(q{select datetime('now','localtime') as now})->hash);
   };
 
   app->start;
@@ -233,8 +233,13 @@ L<DBD::SQLite/"journal_mode"> for more information.
 
   # Performed concurrently
   my $pid = fork || die $!;
-  say $sql->db->query('select datetime("now","localtime") as time')->hash->{time};
+  say $sql->db->query(q{select datetime('now','localtime') as time})->hash->{time};
   exit unless $pid;
+
+The L<double-quoted string literal misfeature
+|https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted> is
+disabled for all connections since Mojo::SQLite 3.003; use single quotes for
+string literals and double quotes for identifiers, as is normally recommended.
 
 All cached database handles will be reset automatically if a new process has
 been forked, this allows multiple processes to share the same L<Mojo::SQLite>
