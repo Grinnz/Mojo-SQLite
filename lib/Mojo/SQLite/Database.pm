@@ -8,7 +8,7 @@ use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Mojo::Util 'monkey_patch';
 
-our $VERSION = '3.004';
+our $VERSION = '3.005';
 
 our @CARP_NOT = qw(Mojo::SQLite::Migrations);
 
