@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.004     2020-07-22 22:50:43 EDT
   - The Mojo::SQLite::Migrations sqlite attribute and the
     Mojo::SQLite::Transaction db attribute are now weak attributes, increasing
     the required version of Mojolicious to 8.03.

@@ -105,7 +105,7 @@ EOW
       "test_requires" => {
         "File::Spec" => 0,
         "Module::Metadata" => 0,
-        "Test::More" => "0.88"
+        "Test::More" => "0.96"
       }
     );
 
@@ -113,7 +113,7 @@ EOW
     my %fallback_build_requires = (
       "File::Spec" => 0,
       "Module::Metadata" => 0,
-      "Test::More" => "0.88"
+      "Test::More" => "0.96"
     );
 
 
