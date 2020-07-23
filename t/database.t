@@ -9,16 +9,18 @@ use Mojo::JSON 'true';
 use DBI ':sql_types';
 use Mojo::Util 'encode';
 
-# Connected
 my $sql = Mojo::SQLite->new;
-ok $sql->db->ping, 'connected';
 
-# Blocking select
-is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
-  {one => 1, two => 2, three => 3}, 'right structure';
+subtest 'Connected' => sub {
+  ok $sql->db->ping, 'connected';
+};
 
-# Non-blocking select
-{
+subtest 'Blocking select' => sub {
+  is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
+    {one => 1, two => 2, three => 3}, 'right structure';
+};
+
+subtest 'Non-blocking select' => sub {
   my ($fail, $result);
   my $same;
   my $db = $sql->db;
@@ -35,10 +37,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   ok $same, 'same database handles';
   ok !$fail, 'no error';
   is_deeply $result, {one => 1, two => 2, three => 3}, 'right structure';
-}
+};
 
-# Concurrent non-blocking selects
-{
+subtest 'Concurrent non-blocking selects' => sub {
   my ($fail, $result);
   Mojo::IOLoop->delay(
     sub {
@@ -56,10 +57,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   )->wait;
   ok !$fail, 'no error';
   is_deeply $result, [{one => 1}, {two => 2}, {two => 2}], 'right structure';
-}
+};
 
-# Sequential non-blocking selects
-{
+subtest 'Sequential non-blocking selects' => sub {
   my ($fail, $result);
   my $db = $sql->db;
   Mojo::IOLoop->delay(
@@ -87,10 +87,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   )->wait;
   ok !$fail, 'no error';
   is_deeply $result, [{one => 1}, {one => 1}, {two => 2}], 'right structure';
-}
+};
 
-# Connection cache
-{
+subtest 'Connection cache' => sub {
   is $sql->max_connections, 1, 'right default';
   my @dbhs = map { $_->dbh } $sql->db, $sql->db, $sql->db, $sql->db, $sql->db;
   is_deeply \@dbhs,
@@ -105,10 +104,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   is $sql->db->dbh, $dbh, 'same database handle';
   $sql->db->disconnect;
   isnt $sql->db->dbh, $dbh, 'different database handles';
-}
+};
 
-# Statement cache
-{
+subtest 'Statement cache' => sub {
   my $db = $sql->db;
   my $sth = $db->query('select 3 as three')->sth;
   is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
@@ -124,10 +122,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   isnt $db->query('select 5 as five')->sth, $sth, 'different statement handles';
   isnt $db->query('select 6 as six')->sth,  $sth, 'different statement handles';
   is $db->query('select 3 as three')->sth,  $sth, 'same statement handle';
-}
+};
 
-# Connection reuse
-{
+subtest 'Connection reuse' => sub {
   my $db      = $sql->db;
   my $dbh     = $db->dbh;
   my $results = $db->query('select 1');
@@ -140,10 +137,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   $results = $db3->query('select 2');
   is $results->db->dbh, $dbh, 'same database handle';
   is $results->array->[0], 2, 'right result';
-}
+};
 
-# Bind types
-{
+subtest 'Bind types' => sub {
   my $db = $sql->db;
   is_deeply $db->query('select ? as foo', {type => SQL_VARCHAR, value => 'bar'})
     ->hash, {foo => 'bar'}, 'right structure';
@@ -155,10 +151,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
     ->hash, {foo => '☃♥'}, 'right structure';
   is_deeply $db->query('select ? as foo', {type => SQL_BLOB, value => encode 'UTF-8', '☃♥'})
     ->hash, {foo => encode 'UTF-8', '☃♥'}, 'right structure';
-}
+};
 
-# JSON
-{
+subtest 'JSON' => sub {
   my $db = $sql->db;
   is_deeply $db->query('select ? as foo', {json => {bar => 'baz'}})
     ->expand(json => 'foo')->hash, {foo => {bar => 'baz'}}, 'right structure';
@@ -190,10 +185,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   is_deeply $db->query('select ? as foo, ? as bar', {json => {baz => 'foo'}},
     {json => {baz => 'bar'}})->expand(json => ['foo','bar'])->hash,
     {foo => {baz => 'foo'}, bar => {baz => 'bar'}}, 'right structure';
-}
+};
 
-# Fork-safety
-{
+subtest 'Fork-safety' => sub {
   my $dbh = $sql->db->dbh;
   my ($connections, $current) = @_;
   $sql->on(
@@ -212,10 +206,9 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
     is $connections, 1, 'one new connection';
   }
   $sql->unsubscribe('connection');
-}
+};
 
-# Shared connection cache
-{
+subtest 'Shared connection cache' => sub {
   my $sql2 = Mojo::SQLite->new($sql);
   is $sql2->parent, $sql, 'right parent';
   my $dbh = $sql->db->dbh;
@@ -232,14 +225,14 @@ is_deeply $sql->db->query('select 1 as one, 2 as two, 3 as three')->hash,
   is_deeply $db->query('select 1 as one')->hashes->to_array, [{one => 1}],
     'right structure';
   isnt $db->dbh, $dbh, 'different database handle';
-}
+};
 
-# Blocking error
-eval { $sql->db->query('does_not_exist') };
-like $@, qr/does_not_exist.*database\.t/s, 'right error';
+subtest 'Blocking error' => sub {
+  eval { $sql->db->query('does_not_exist') };
+  like $@, qr/does_not_exist.*database\.t/s, 'right error';
+};
 
-# Non-blocking error
-{
+subtest 'Non-blocking error' => sub {
   my ($fail, $result);
   my $db = $sql->db;
   $db->query(
@@ -252,17 +245,18 @@ like $@, qr/does_not_exist.*database\.t/s, 'right error';
   Mojo::IOLoop->start;
   like $fail, qr/does_not_exist/, 'right error';
   is $db->dbh->errstr, $fail, 'same error';
-}
+};
 
-# Error context
-eval { $sql->db->query('select * from table_does_not_exist') };
-like $@, qr/database\.t/, 'right error';
+subtest 'Error context' => sub {
+  eval { $sql->db->query('select * from table_does_not_exist') };
+  like $@, qr/database\.t/, 'right error';
+};
 
-# Double-quoted literal
-ok !eval { $sql->db->query('select "does_not_exist"') }, 'no double-quoted string literals';
+subtest 'Double-quoted literal' => sub {
+  ok !eval { $sql->db->query('select "does_not_exist"') }, 'no double-quoted string literals';
+};
 
-# WAL mode option
-{
+subtest 'WAL mode option' => sub {
   my $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
   is uc $journal_mode, 'WAL', 'right journal mode';
   
@@ -270,6 +264,6 @@ ok !eval { $sql->db->query('select "does_not_exist"') }, 'no double-quoted strin
   $sql->options->{no_wal} = 1;
   $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
   is uc $journal_mode, 'DELETE', 'right journal mode';
-}
+};
 
 done_testing();

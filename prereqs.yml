@@ -14,4 +14,4 @@ runtime:
     URI::file: '4.21'
 test:
   requires:
-    Test::More: '0.88'
+    Test::More: '0.96'
