@@ -141,7 +141,7 @@ query methods in L<Mojo::SQLite::Database>. The C<on_conflict> and C<for>
 features are not applicable to SQLite queries.
 
   use SQL::Abstract::Pg;
-  my $sql = Mojo::SQLite->new(abstract => SQL::Abstract::Pg->new(name_sep => '.', quote_char => '"'));
+  my $sql = Mojo::SQLite->new->abstract(SQL::Abstract::Pg->new(name_sep => '.', quote_char => '"'));
   $sql->db->select(['some_table', ['other_table', foo_id => 'id']],
     ['foo', [bar => 'baz'], \q{datetime('now') as dt}],
     {foo => 'value'},
