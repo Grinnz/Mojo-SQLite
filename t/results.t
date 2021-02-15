@@ -3,6 +3,7 @@ use Mojo::Base -strict;
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use Mojo::IOLoop::Delay;
 
 package MojoSQLiteTest::Database;
 use Mojo::Base 'Mojo::SQLite::Database';
@@ -99,7 +100,8 @@ my $sql = Mojo::SQLite->new;
 
   subtest 'Non-blocking query where not all results have been fetched' => sub {
     my ($fail, $result);
-    Mojo::IOLoop->delay(
+    my $delay = Mojo::IOLoop::Delay->new;
+    $delay->steps(
       sub {
         my $delay = shift;
         $db->query('select name from results_test' => $delay->begin);

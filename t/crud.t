@@ -5,6 +5,7 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use Mojo::IOLoop::Delay;
 
 my $sql = Mojo::SQLite->new;
 
@@ -40,13 +41,15 @@ my $sql = Mojo::SQLite->new;
 
   subtest 'Non-blocking read' => sub {
     my $result;
-    my $delay = Mojo::IOLoop->delay(sub { $result = pop->hashes->to_array });
+    my $delay = Mojo::IOLoop::Delay->new;
+    $delay->steps(sub { $result = pop->hashes->to_array });
     $db->select('crud_test', $delay->begin);
     $delay->wait;
     is_deeply $result, [{id => 1, name => 'foo'}, {id => 2, name => 'bar'}],
       'right structure';
     $result = undef;
-    $delay = Mojo::IOLoop->delay(sub { $result = pop->hashes->to_array });
+    $delay = Mojo::IOLoop::Delay->new;
+    $delay->steps(sub { $result = pop->hashes->to_array });
     $db->select('crud_test', undef, undef, {-desc => 'id'}, $delay->begin);
     $delay->wait;
     is_deeply $result, [{id => 2, name => 'bar'}, {id => 1, name => 'foo'}],

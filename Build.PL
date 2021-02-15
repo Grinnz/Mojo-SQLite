@@ -105,6 +105,7 @@ EOW
       "test_requires" => {
         "File::Spec" => 0,
         "Module::Metadata" => 0,
+        "Mojo::IOLoop::Delay" => "8.75",
         "Test::More" => "0.96"
       }
     );

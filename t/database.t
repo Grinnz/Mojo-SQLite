@@ -5,6 +5,7 @@ BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use Mojo::IOLoop::Delay;
 use Mojo::JSON 'true';
 use DBI ':sql_types';
 use Mojo::Util 'encode';
@@ -41,7 +42,8 @@ subtest 'Non-blocking select' => sub {
 
 subtest 'Concurrent non-blocking selects' => sub {
   my ($fail, $result);
-  Mojo::IOLoop->delay(
+  my $delay = Mojo::IOLoop::Delay->new;
+  $delay->steps(
     sub {
       my $delay = shift;
       $sql->db->query('select 1 as one' => $delay->begin);
@@ -62,7 +64,8 @@ subtest 'Concurrent non-blocking selects' => sub {
 subtest 'Sequential non-blocking selects' => sub {
   my ($fail, $result);
   my $db = $sql->db;
-  Mojo::IOLoop->delay(
+  my $delay = Mojo::IOLoop::Delay->new;
+  $delay->steps(
     sub {
       my $delay = shift;
       $db->query('select 1 as one' => $delay->begin);
