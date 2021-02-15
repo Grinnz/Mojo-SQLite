@@ -41,20 +41,14 @@ subtest 'Non-blocking select' => sub {
 
 subtest 'Concurrent non-blocking selects' => sub {
   my ($fail, $result);
-  Mojo::IOLoop->delay(
-    sub {
-      my $delay = shift;
-      $sql->db->query('select 1 as one' => $delay->begin);
-      $sql->db->query('select 2 as two' => $delay->begin);
-      $sql->db->query('select 2 as two' => $delay->begin);
-    },
-    sub {
-      my ($delay, $err_one, $one, $err_two, $two, $err_again, $again) = @_;
-      $fail = $err_one || $err_two || $err_again;
-      $result
-        = [$one->hashes->first, $two->hashes->first, $again->hashes->first];
-    }
-  )->wait;
+  my $one   = $sql->db->query_p('select 1 as one');
+  my $two   = $sql->db->query_p('select 2 as two');
+  my $again = $sql->db->query_p('select 2 as two');
+  Mojo::Promise->all($one, $again, $two)->then(sub {
+    $result = [map { $_->[0]->hashes->first } @_];
+  })->catch(sub {
+    $fail = 1;
+  })->wait;
   ok !$fail, 'no error';
   is_deeply $result, [{one => 1}, {two => 2}, {two => 2}], 'right structure';
 };
@@ -62,29 +56,17 @@ subtest 'Concurrent non-blocking selects' => sub {
 subtest 'Sequential non-blocking selects' => sub {
   my ($fail, $result);
   my $db = $sql->db;
-  Mojo::IOLoop->delay(
-    sub {
-      my $delay = shift;
-      $db->query('select 1 as one' => $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $one) = @_;
-      $fail = $err;
-      push @$result, $one->hashes->first;
-      $db->query('select 1 as one' => $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $again) = @_;
-      $fail ||= $err;
-      push @$result, $again->hashes->first;
-      $db->query('select 2 as two' => $delay->begin);
-    },
-    sub {
-      my ($delay, $err, $two) = @_;
-      $fail ||= $err;
-      push @$result, $two->hashes->first;
-    }
-  )->wait;
+  $db->query_p('select 1 as one')->then(sub {
+    push @$result, shift->hashes->first;
+    $db->query_p('select 1 as one');
+  })->then(sub {
+    push @$result, shift->hashes->first;
+    $db->query_p('select 2 as two');
+  })->then(sub {
+    push @$result, shift->hashes->first;
+  })->catch(sub {
+    $fail = 1;
+  })->wait;
   ok !$fail, 'no error';
   is_deeply $result, [{one => 1}, {one => 1}, {two => 2}], 'right structure';
 };
