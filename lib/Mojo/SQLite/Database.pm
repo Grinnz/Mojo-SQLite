@@ -4,6 +4,7 @@ use Mojo::Base -base;
 use Carp qw(croak shortmess);
 use DBI 'SQL_VARCHAR';
 use Mojo::JSON 'to_json';
+use Mojo::Promise;
 use Mojo::SQLite::Results;
 use Mojo::SQLite::Transaction;
 use Mojo::Util 'monkey_patch';
@@ -19,6 +20,10 @@ for my $name (qw(delete insert select update)) {
   monkey_patch __PACKAGE__, $name, sub {
     my ($self, @cb) = (shift, ref $_[-1] eq 'CODE' ? pop : ());
     return $self->query($self->sqlite->abstract->$name(@_), @cb);
+  };
+  monkey_patch __PACKAGE__, "${name}_p", sub {
+    my $self = shift;
+    return $self->query_p($self->sqlite->abstract->$name(@_));
   };
 }
 
@@ -84,6 +89,13 @@ sub query {
   require Mojo::IOLoop;
   Mojo::IOLoop->next_tick(sub { $self->$cb($error, $results) });
   return $self;
+}
+
+sub query_p {
+  my $self    = shift;
+  my $promise = Mojo::Promise->new;
+  $self->query(@_ => sub { $_[1] ? $promise->reject($_[1]) : $promise->resolve($_[2]) });
+  return $promise;
 }
 
 sub tables {
@@ -219,6 +231,20 @@ L<SQL::Abstract>.
   # "delete from some_table where foo like '%test%'"
   $db->delete('some_table', {foo => {-like => '%test%'}});
 
+=head2 delete_p
+
+  my $promise = $db->delete_p($table, \%where, \%options);
+
+Same as L</"delete"> but returns a L<Mojo::Promise> object instead of accepting
+a callback. For API compatibility with L<Mojo::Pg>; the query is still executed
+in a blocking manner.
+
+  $db->delete_p('some_table')->then(sub ($results) {
+    ...
+  })->catch(sub ($err) {
+    ...
+  })->wait;
+
 =head2 disconnect
 
   $db->disconnect;
@@ -245,6 +271,20 @@ L<SQL::Abstract>.
 
   # "insert into some_table (foo, baz) values ('bar', 'yada')"
   $db->insert('some_table', {foo => 'bar', baz => 'yada'});
+
+=head2 insert_p
+
+  my $promise = $db->insert_p($table, \@values || \%fieldvals, \%options);
+
+Same as L</"insert"> but returns a L<Mojo::Promise> object instead of accepting
+a callback. For API compatibility with L<Mojo::Pg>; the query is still executed
+in a blocking manner.
+
+  $db->insert_p(some_table => {foo => 'bar'})->then(sub ($results) {
+    ...
+  })->catch(sub ($err) {
+    ...
+  })->wait;
 
 =head2 ping
 
@@ -287,6 +327,20 @@ with L<Mojo::JSON/"from_json">.
   $db->query('select ? as foo', {json => {bar => 'I ♥ SQLite!'}})
     ->expand(json => 'foo')->hash->{foo}{bar};
 
+=head2 query_p
+
+  my $promise = $db->query_p('SELECT * FROM foo');
+
+Same as L</"query"> but returns a L<Mojo::Promise> object instead of accepting
+a callback. For API compatibility with L<Mojo::Pg>; the query is still executed
+in a blocking manner.
+
+  $db->query_p('INSERT INTO foo VALUES (?, ?, ?)' => @values)->then(sub ($results) {
+    ...
+  })->catch(sub ($err) {
+    ...
+  })->wait;
+
 =head2 select
 
   my $results = $db->select($source, $fields, $where, $order);
@@ -319,6 +373,20 @@ L<SQL::Abstract>.
 
   # "select * from some_table where foo like '%test%'"
   $db->select('some_table', undef, {foo => {-like => '%test%'}});
+
+=head2 select_p
+
+  my $promise = $db->select_p($source, $fields, $where, \%options);
+
+Same as L</"select"> but returns a L<Mojo::Promise> object instead of accepting
+a callback. For API compatibility with L<Mojo::Pg>; the query is still executed
+in a blocking manner.
+
+  $db->select_p(some_table => ['foo'] => {bar => 'yada'})->then(sub ($results) {
+    ...
+  })->catch(sub ($err) {
+    ...
+  })->wait;
 
 =head2 tables
 
@@ -356,6 +424,20 @@ L<SQL::Abstract>.
 
   # "update some_table set foo = 'bar' where foo like '%test%'"
   $db->update('some_table', {foo => 'bar'}, {foo => {-like => '%test%'}});
+
+=head2 update_p
+
+  my $promise = $db->update_p($table, \%fieldvals, \%where, \%options);
+
+Same as L</"update"> but returns a L<Mojo::Promise> object instead of accepting
+a callback. For API compatibility with L<Mojo::Pg>; the query is still executed
+in a blocking manner.
+
+  $db->update_p(some_table => {foo => 'baz'} => {foo => 'bar'})->then(sub ($results) {
+    ...
+  })->catch(sub ($err) {
+    ...
+  })->wait;
 
 =head1 BUGS
 

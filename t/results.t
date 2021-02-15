@@ -3,6 +3,7 @@ use Mojo::Base -strict;
 use Test::More;
 use Mojo::SQLite;
 use Mojo::IOLoop;
+use Mojo::Promise;
 
 package MojoSQLiteTest::Database;
 use Mojo::Base 'Mojo::SQLite::Database';
@@ -99,31 +100,23 @@ my $sql = Mojo::SQLite->new;
 
   subtest 'Non-blocking query where not all results have been fetched' => sub {
     my ($fail, $result);
-    Mojo::IOLoop->delay(
-      sub {
-        my $delay = shift;
-        $db->query('select name from results_test' => $delay->begin);
-      },
-      sub {
-        my ($delay, $err, $results) = @_;
-        $fail = $err;
+    my @promises = (
+      $db->query_p('select name from results_test')->then(sub {
+        my $results = shift;
         push @$result, $results->array;
         $results->finish;
-        $db->query('select name from results_test' => $delay->begin);
-      },
-      sub {
-        my ($delay, $err, $results) = @_;
-        $fail ||= $err;
+      }),
+      $db->query_p('select name from results_test')->then(sub {
+        my $results = shift;
         push @$result, $results->array_test;
         $results->finish;
-        $db->query('select name from results_test' => $delay->begin);
-      },
-      sub {
-        my ($delay, $err, $results) = @_;
-        $fail ||= $err;
+      }),
+      $db->query_p('select name from results_test')->then(sub {
+        my $results = shift;
         push @$result, $results->array;
-      }
-    )->wait;
+      }),
+    );
+    Mojo::Promise->all(@promises)->catch(sub { $fail = 1 })->wait;
     ok !$fail, 'no error';
     is_deeply $result, [['foo'], ['foo'], ['foo']], 'right structure';
   };
