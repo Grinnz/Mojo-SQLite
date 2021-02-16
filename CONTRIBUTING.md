@@ -24,8 +24,8 @@ App::cpanminus first, using the fatpacked `cpanm` script via curl or wget:
     $ curl -L https://cpanmin.us | perl - --installdeps --with-develop .
     $ wget -qO - https://cpanmin.us | perl - --installdeps --with-develop .
 
-Otherwise, look for either a `cpanfile` or `META.json` file for a list of
-dependencies to satisfy.
+Otherwise, look for either a `cpanfile`, `prereqs.json`/`prereqs.yml`, or
+`META.json` file for a list of dependencies to satisfy.
 
 ## Running tests
 
