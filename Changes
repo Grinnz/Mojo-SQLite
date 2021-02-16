@@ -1,5 +1,10 @@
 {{$NEXT}}
 
+3.005     2021-02-15 21:47:59 EST
+  - Add query_p, select_p, insert_p, update_p, delete_p Mojo::Promise-returning methods to Mojo::SQLite::Database.
+    These are for API compatibility with Mojo::Pg and do not provide non-blocking query functionality. (#20, Stefan Adams)
+  - Use Mojo::Promise in tests instead of the deprecated and decored Mojo::IOLoop::Delay (#20, Stefan Adams)
+
 3.004     2020-07-22 22:50:43 EDT
   - The Mojo::SQLite::Migrations sqlite attribute and the
     Mojo::SQLite::Transaction db attribute are now weak attributes, increasing
