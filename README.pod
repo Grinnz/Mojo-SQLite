@@ -76,8 +76,7 @@ gracefully by holding on to them only for short amounts of time.
 
   helper sqlite => sub { state $sql = Mojo::SQLite->new('sqlite:test.db') };
 
-  get '/' => sub {
-    my $c  = shift;
+  get '/' => sub ($c) {
     my $db = $c->sqlite->db;
     $c->render(json => $db->query(q{select datetime('now','localtime') as now})->hash);
   };
@@ -161,8 +160,7 @@ following new ones.
 
 =head2 connection
 
-  $sql->on(connection => sub {
-    my ($sql, $dbh) = @_;
+  $sql->on(connection => sub ($sql, $dbh) {
     $dbh->do('pragma journal_size_limit=1000000');
   });
 

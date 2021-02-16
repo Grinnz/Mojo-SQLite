@@ -213,8 +213,7 @@ L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
 callback for API compatibility with L<Mojo::Pg>; the query is still executed in
 a blocking manner.
 
-  $db->delete(some_table => sub {
-    my ($db, $err, $results) = @_;
+  $db->delete(some_table => sub ($db, $err, $results) {
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -260,8 +259,7 @@ L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
 callback for API compatibility with L<Mojo::Pg>; the query is still executed in
 a blocking manner.
 
-  $db->insert(some_table => {foo => 'bar'} => sub {
-    my ($db, $err, $results) = @_;
+  $db->insert(some_table => {foo => 'bar'} => sub ($db, $err, $results) {
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -307,8 +305,7 @@ increase the performance of future queries. You can also append a callback for
 API compatibility with L<Mojo::Pg>; the query is still executed in a blocking
 manner.
 
-  $db->query('insert into foo values (?, ?, ?)' => @values => sub {
-    my ($db, $err, $results) = @_;
+  $db->query('insert into foo values (?, ?, ?)' => @values => sub ($db, $err, $results) {
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -350,8 +347,7 @@ L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
 callback for API compatibility with L<Mojo::Pg>; the query is still executed in
 a blocking manner.
 
-  $db->select(some_table => ['foo'] => {bar => 'yada'} => sub {
-    my ($db, $err, $results) = @_;
+  $db->select(some_table => ['foo'] => {bar => 'yada'} => sub ($db, $err, $results) {
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
@@ -410,8 +406,7 @@ L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
 callback for API compatibility with L<Mojo::Pg>; the query is still executed in
 a blocking manner.
 
-  $db->update(some_table => {foo => 'baz'} => {foo => 'bar'} => sub {
-    my ($db, $err, $results) = @_;
+  $db->update(some_table => {foo => 'baz'} => {foo => 'bar'} => sub ($db, $err, $results) {
     ...
   });
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
