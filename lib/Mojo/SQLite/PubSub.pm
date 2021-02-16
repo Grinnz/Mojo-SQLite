@@ -3,7 +3,7 @@ use Mojo::Base -strict;
 
 use Mojo::Util 'deprecated';
 
-our $VERSION = '3.005';
+our $VERSION = '3.006';
 
 deprecated 'Mojo::SQLite::PubSub is deprecated and should no longer be used';
 
