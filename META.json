@@ -44,7 +44,7 @@
             "File::Spec::Functions" : "0",
             "File::Temp" : "0",
             "Mojolicious" : "8.03",
-            "SQL::Abstract" : "1.81",
+            "SQL::Abstract::Pg" : "1.0",
             "Scalar::Util" : "0",
             "URI" : "1.69",
             "URI::db" : "0.15",
@@ -66,28 +66,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "3.005"
+         "version" : "3.006"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "3.005"
+         "version" : "3.006"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "3.005"
+         "version" : "3.006"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "3.005",
+         "version" : "3.006",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "3.005"
+         "version" : "3.006"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "3.005"
+         "version" : "3.006"
       }
    },
    "release_status" : "stable",
@@ -101,16 +101,16 @@
          "url" : "https://github.com/Grinnz/Mojo-SQLite.git",
          "web" : "https://github.com/Grinnz/Mojo-SQLite"
       },
-      "x_IRC" : "irc://irc.freenode.net/#mojo"
+      "x_IRC" : "ircs://irc.libera.chat/#mojo"
    },
-   "version" : "3.005",
+   "version" : "3.006",
    "x_contributors" : [
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>",
       "Stefan Adams <stefan@adams.fm>"
    ],
-   "x_generated_by_perl" : "v5.32.0",
-   "x_serialization_backend" : "Cpanel::JSON::XS version 4.25",
+   "x_generated_by_perl" : "v5.34.0",
+   "x_serialization_backend" : "Cpanel::JSON::XS version 4.26",
    "x_spdx_expression" : "Artistic-2.0"
 }
 

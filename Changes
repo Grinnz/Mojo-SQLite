@@ -1,4 +1,6 @@
 {{$NEXT}}
+  - Set default abstract generator to an SQL::Abstract::Pg object, enabling additional features.
+  - Update IRC metadata to libera.chat
 
 3.005     2021-02-15 21:47:59 EST
   - Add query_p, select_p, insert_p, update_p, delete_p Mojo::Promise-returning methods to Mojo::SQLite::Database.

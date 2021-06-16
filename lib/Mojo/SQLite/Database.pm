@@ -209,9 +209,9 @@ L<https://sqlite.org/lang_transaction.html> for more details.
   my $results = $db->delete($table, \%where);
 
 Generate a C<DELETE> statement with L<Mojo::SQLite/"abstract"> (usually an
-L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
-callback for API compatibility with L<Mojo::Pg>; the query is still executed in
-a blocking manner.
+L<SQL::Abstract::Pg> object) and execute it with L</"query">. You can also
+append a callback for API compatibility with L<Mojo::Pg>; the query is still
+executed in a blocking manner.
 
   $db->delete(some_table => sub ($db, $err, $results) {
     ...
@@ -255,9 +255,9 @@ Disconnect L</"dbh"> and prevent it from getting reused.
   my $results = $db->insert($table, \@values || \%fieldvals, \%options);
 
 Generate an C<INSERT> statement with L<Mojo::SQLite/"abstract"> (usually an
-L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
-callback for API compatibility with L<Mojo::Pg>; the query is still executed in
-a blocking manner.
+L<SQL::Abstract::Pg> object) and execute it with L</"query">. You can also
+append a callback for API compatibility with L<Mojo::Pg>; the query is still
+executed in a blocking manner.
 
   $db->insert(some_table => {foo => 'bar'} => sub ($db, $err, $results) {
     ...
@@ -343,9 +343,9 @@ in a blocking manner.
   my $results = $db->select($source, $fields, $where, $order);
 
 Generate a C<SELECT> statement with L<Mojo::SQLite/"abstract"> (usually an
-L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
-callback for API compatibility with L<Mojo::Pg>; the query is still executed in
-a blocking manner.
+L<SQL::Abstract::Pg> object) and execute it with L</"query">. You can also
+append a callback for API compatibility with L<Mojo::Pg>; the query is still
+executed in a blocking manner.
 
   $db->select(some_table => ['foo'] => {bar => 'yada'} => sub ($db, $err, $results) {
     ...
@@ -402,9 +402,9 @@ L<attached databases|http://sqlite.org/lang_attach.html>.
   my $results = $db->update($table, \%fieldvals, \%where);
 
 Generate an C<UPDATE> statement with L<Mojo::SQLite/"abstract"> (usually an
-L<SQL::Abstract> object) and execute it with L</"query">. You can also append a
-callback for API compatibility with L<Mojo::Pg>; the query is still executed in
-a blocking manner.
+L<SQL::Abstract::Pg> object) and execute it with L</"query">. You can also
+append a callback for API compatibility with L<Mojo::Pg>; the query is still
+executed in a blocking manner.
 
   $db->update(some_table => {foo => 'baz'} => {foo => 'bar'} => sub ($db, $err, $results) {
     ...

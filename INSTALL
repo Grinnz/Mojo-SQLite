@@ -21,8 +21,11 @@ Alternatively, if your CPAN shell is set up, you should just be able to do:
 
 ## Manual installation
 
-As a last resort, you can manually install it. Download the tarball, untar it,
-install configure prerequisites (see below), then build it:
+As a last resort, you can manually install it. If you have not already
+downloaded the release tarball, you can find the download link on the module's
+MetaCPAN page: https://metacpan.org/pod/Mojo::SQLite
+
+Untar the tarball, install configure prerequisites (see below), then build it:
 
     % perl Build.PL
     % ./Build && ./Build test

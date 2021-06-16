@@ -8,7 +8,7 @@ runtime:
     File::Temp: 0
     Mojolicious: '8.03'
     Scalar::Util: 0
-    SQL::Abstract: '1.81'
+    SQL::Abstract::Pg: '1.0'
     URI: '1.69'
     URI::db: '0.15'
     URI::file: '4.21'
