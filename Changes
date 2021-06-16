@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.006     2021-06-16 00:30:47 EDT
   - Set default abstract generator to an SQL::Abstract::Pg object, enabling additional features.
   - Update IRC metadata to libera.chat
 
