@@ -1,6 +1,8 @@
 use Mojo::Base -strict;
 
 use Test::More;
+
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 use Mojo::SQLite;
 use URI::file;
 
@@ -12,7 +14,7 @@ subtest 'Defaults' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -25,7 +27,7 @@ subtest 'Minimal connection string with file' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -38,7 +40,7 @@ subtest 'Minimal connection string with in-memory database and option' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 1,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -58,7 +60,7 @@ subtest 'Connection string with absolute filename and options' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 0,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -71,7 +73,7 @@ subtest 'Connection string with lots of zeros' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 0,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -84,7 +86,7 @@ subtest 'Parse filename' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 1,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
   is_deeply $sql->options, $options, 'right options';
 };

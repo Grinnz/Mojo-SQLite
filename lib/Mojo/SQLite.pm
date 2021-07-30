@@ -4,7 +4,7 @@ use Mojo::Base 'Mojo::EventEmitter';
 use Carp 'croak';
 use DBI;
 use DBD::SQLite;
-use DBD::SQLite::Constants ':database_connection_configuration_options';
+use DBD::SQLite::Constants qw(:database_connection_configuration_options :dbd_sqlite_string_mode);
 use File::Spec::Functions 'catfile';
 use File::Temp;
 use Mojo::SQLite::Database;
@@ -28,7 +28,7 @@ has options => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_unicode      => 1,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
   };
 };
 has 'parent';
@@ -359,10 +359,11 @@ more easily.
   my $options = $sql->options;
   $sql        = $sql->options({AutoCommit => 1, RaiseError => 1});
 
-Options for database handles, defaults to activating C<sqlite_unicode>,
-C<AutoCommit>, C<AutoInactiveDestroy> as well as C<RaiseError> and deactivating
-C<PrintError>. Note that C<AutoCommit> and C<RaiseError> are considered
-mandatory, so deactivating them would be very dangerous. See
+Options for database handles, defaults to setting C<sqlite_string_mode> to
+C<DBD_SQLITE_STRING_MODE_UNICODE_NAIVE>, setting C<AutoCommit>,
+C<AutoInactiveDestroy> and C<RaiseError>, and deactivating C<PrintError>.
+Note that C<AutoCommit> and C<RaiseError> are considered mandatory, so
+deactivating them would be very dangerous. See
 L<DBI/"ATTRIBUTES COMMON TO ALL HANDLES"> and
 L<DBD::SQLite/"DRIVER PRIVATE ATTRIBUTES"> for more information on available
 options.
