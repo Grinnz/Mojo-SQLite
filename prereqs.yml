@@ -3,7 +3,7 @@ runtime:
     perl: '5.010001'
     Carp: 0
     DBI: '1.627'
-    DBD::SQLite: '1.64' # for JSON1, FTS5, DQS
+    DBD::SQLite: '1.68' # for JSON1, FTS5, DQS, sqlite_string_mode
     File::Spec::Functions: 0
     File::Temp: 0
     Mojolicious: '8.03'
