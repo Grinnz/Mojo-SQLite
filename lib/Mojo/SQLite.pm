@@ -28,7 +28,7 @@ has options => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
 };
 has 'parent';
@@ -49,6 +49,8 @@ sub from_string {
   # Options
   my %options = $url->query_form;
   $url->query(undef);
+  # don't set default string_mode if sqlite_unicode legacy option is set
+  delete $self->options->{sqlite_string_mode} if exists $options{sqlite_unicode};
   @{$self->options}{keys %options} = values %options;
 
   # Parse URL based on scheme
@@ -360,7 +362,7 @@ more easily.
   $sql        = $sql->options({AutoCommit => 1, RaiseError => 1});
 
 Options for database handles, defaults to setting C<sqlite_string_mode> to
-C<DBD_SQLITE_STRING_MODE_UNICODE_NAIVE>, setting C<AutoCommit>,
+C<DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK>, setting C<AutoCommit>,
 C<AutoInactiveDestroy> and C<RaiseError>, and deactivating C<PrintError>.
 Note that C<AutoCommit> and C<RaiseError> are considered mandatory, so
 deactivating them would be very dangerous. See

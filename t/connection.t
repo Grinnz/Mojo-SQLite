@@ -14,7 +14,7 @@ subtest 'Defaults' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -27,7 +27,7 @@ subtest 'Minimal connection string with file' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 1,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -40,7 +40,7 @@ subtest 'Minimal connection string with in-memory database and option' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 1,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -60,7 +60,7 @@ subtest 'Connection string with absolute filename and options' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 0,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -73,7 +73,7 @@ subtest 'Connection string with lots of zeros' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 0,
     RaiseError          => 0,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -86,7 +86,7 @@ subtest 'Parse filename' => sub {
     AutoInactiveDestroy => 1,
     PrintError          => 1,
     RaiseError          => 1,
-    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE,
+    sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -94,6 +94,32 @@ subtest 'Parse filename' => sub {
 subtest 'Invalid connection string' => sub {
   eval { Mojo::SQLite->new('http://localhost:3000/test') };
   like $@, qr/Invalid SQLite connection string/, 'right error';
+};
+
+subtest 'Legacy sqlite_unicode enabled' => sub {
+  my $sql = Mojo::SQLite->new('test.db?sqlite_unicode=1');
+  like $sql->dsn,    qr/^dbi:SQLite:dbname=/, 'right data source';
+  my $options = {
+    AutoCommit          => 1,
+    AutoInactiveDestroy => 1,
+    PrintError          => 0,
+    RaiseError          => 1,
+    sqlite_unicode      => 1,
+  };
+  is_deeply $sql->options, $options, 'right options';
+};
+
+subtest 'Legacy sqlite_unicode disabled' => sub {
+  my $sql = Mojo::SQLite->new('test.db?sqlite_unicode=0');
+  like $sql->dsn,    qr/^dbi:SQLite:dbname=/, 'right data source';
+  my $options = {
+    AutoCommit          => 1,
+    AutoInactiveDestroy => 1,
+    PrintError          => 0,
+    RaiseError          => 1,
+    sqlite_unicode      => 0,
+  };
+  is_deeply $sql->options, $options, 'right options';
 };
 
 done_testing();
