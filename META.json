@@ -4,7 +4,7 @@
       "Dan Book <dbook@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 6.017, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Dist::Zilla version 6.022, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "artistic_2"
    ],
@@ -39,7 +39,7 @@
       "runtime" : {
          "requires" : {
             "Carp" : "0",
-            "DBD::SQLite" : "1.64",
+            "DBD::SQLite" : "1.68",
             "DBI" : "1.627",
             "File::Spec::Functions" : "0",
             "File::Temp" : "0",
@@ -66,28 +66,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "3.006"
+         "version" : "3.007"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "3.006"
+         "version" : "3.007"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "3.006"
+         "version" : "3.007"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "3.006",
+         "version" : "3.007",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "3.006"
+         "version" : "3.007"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "3.006"
+         "version" : "3.007"
       }
    },
    "release_status" : "stable",
@@ -103,8 +103,9 @@
       },
       "x_IRC" : "ircs://irc.libera.chat/#mojo"
    },
-   "version" : "3.006",
+   "version" : "3.007",
    "x_contributors" : [
+      "Adam Williamson <awilliam@redhat.com>",
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>",
       "Stefan Adams <stefan@adams.fm>"

@@ -503,7 +503,7 @@ and applied to L</"options">.
   # Readonly connection without WAL mode
   $sql->from_string('data.db?ReadOnly=1&no_wal=1');
 
-  # String unicode strings and WAL mode  
+  # String unicode strings and WAL mode
   use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path('data.db')
     ->query(sqlite_string_mode => DBD_SQLITE_STRING_MODE_UNICODE_STRICT, wal_mode => 1));
