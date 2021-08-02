@@ -3,6 +3,8 @@
   - The default options now set sqlite_string_mode to DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
     unless sqlite_unicode is specified explicitly in from_string or from_filename. This is equivalent
     to the previous behavior but ensures that DBD::SQLite will not return malformed strings.
+  - Support wal_mode option to enable WAL journaling mode, which is still currently the default,
+    but may not be set by default in a future release.
 
 3.006     2021-06-16 00:30:47 EDT
   - Set default abstract generator to an SQL::Abstract::Pg object, enabling additional features.

@@ -243,6 +243,11 @@ subtest 'WAL mode option' => sub {
   is uc $journal_mode, 'WAL', 'right journal mode';
   
   my $sql = Mojo::SQLite->new;
+  $sql->options->{wal_mode} = 1;
+  $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
+  is uc $journal_mode, 'WAL', 'right journal mode';
+  
+  $sql = Mojo::SQLite->new;
   $sql->options->{no_wal} = 1;
   $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
   is uc $journal_mode, 'DELETE', 'right journal mode';
