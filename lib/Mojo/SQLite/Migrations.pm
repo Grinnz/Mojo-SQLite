@@ -8,7 +8,7 @@ use Mojo::Util 'decode';
 
 use constant DEBUG => $ENV{MOJO_MIGRATIONS_DEBUG} || 0;
 
-our $VERSION = '3.007';
+our $VERSION = '3.008';
 
 has name => 'migrations';
 has sqlite => undef, weak => 1;
