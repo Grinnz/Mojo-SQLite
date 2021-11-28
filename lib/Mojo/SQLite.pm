@@ -320,7 +320,7 @@ C<limit>/C<offset>. The C<for> feature is not applicable to SQLite queries.
 
   # Upsert supported since SQLite 3.24.0
   $sql->db->insert('some_table', {name => $name, value => $value},
-    {on_conflict => [name => {value => \'excluded.value'}]});
+    {on_conflict => [name => {value => \'"excluded"."value"'}]});
 
 =head2 auto_migrate
 

@@ -178,13 +178,16 @@ C<name_sep> set to C<.> and C<quote_char> set to C<">.
 
 L<SQL::Abstract::Pg> provides additional features to the L<SQL::Abstract>
 query methods in L<Mojo::SQLite::Database> such as C<-json> and
-C<limit>/C<offset>. The C<on_conflict> and C<for> features are not applicable
-to SQLite queries.
+C<limit>/C<offset>. The C<for> feature is not applicable to SQLite queries.
 
   $sql->db->select(['some_table', ['other_table', foo_id => 'id']],
     ['foo', [bar => 'baz'], \q{datetime('now') as dt}],
     {foo => 'value'},
     {order_by => 'foo', limit => 10, offset => 5, group_by => ['foo'], having => {baz => 'value'}});
+
+  # Upsert supported since SQLite 3.24.0
+  $sql->db->insert('some_table', {name => $name, value => $value},
+    {on_conflict => [name => {value => \'"excluded"."value"'}]});
 
 =head2 auto_migrate
 

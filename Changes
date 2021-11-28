@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Update documentation to indicate that upsert operations are now supported via SQL::Abstract::Pg.
 
 3.007     2021-08-01 20:17:42 EDT
   - Increase DBD::SQLite dependency to 1.68 to support and use sqlite_string_mode over sqlite_unicode (#22, Adam Williamson)
