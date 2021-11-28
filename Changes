@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.008     2021-11-28 11:10:24 EST
   - Update documentation to indicate that upsert operations are now supported via SQL::Abstract::Pg.
 
 3.007     2021-08-01 20:17:42 EDT
