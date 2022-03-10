@@ -49,12 +49,8 @@ sub migrate {
   my ($up, $down) = @{$self->{migrations}}{qw(up down)};
   croak "Version $target has no migration" if $target != 0 && !$up->{$target};
 
-  # Already the right version (make sure migrations table exists)
   my $db = $self->sqlite->db;
-  return $self if $self->_active($db, 1) == $target;
-
-  # Lock migrations table and check version again
-  my $tx = $db->begin;
+  my $tx = $db->begin('exclusive');
   return $self if (my $active = $self->_active($db, 1)) == $target;
 
   # Newer version
