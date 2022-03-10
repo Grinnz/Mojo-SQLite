@@ -51,7 +51,7 @@ sub migrate {
 
   # Already the right version (make sure migrations table exists)
   my $db = $self->sqlite->db;
-  return $self if $self->_active($db, 1) == $target;
+  return $self if $self->_active($db, 0) == $target;
 
   # Lock migrations table and check version again
   my $tx = $db->begin;
