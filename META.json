@@ -66,28 +66,28 @@
    "provides" : {
       "Mojo::SQLite" : {
          "file" : "lib/Mojo/SQLite.pm",
-         "version" : "3.008"
+         "version" : "3.009"
       },
       "Mojo::SQLite::Database" : {
          "file" : "lib/Mojo/SQLite/Database.pm",
-         "version" : "3.008"
+         "version" : "3.009"
       },
       "Mojo::SQLite::Migrations" : {
          "file" : "lib/Mojo/SQLite/Migrations.pm",
-         "version" : "3.008"
+         "version" : "3.009"
       },
       "Mojo::SQLite::PubSub" : {
          "file" : "lib/Mojo/SQLite/PubSub.pm",
-         "version" : "3.008",
+         "version" : "3.009",
          "x_deprecated" : 1
       },
       "Mojo::SQLite::Results" : {
          "file" : "lib/Mojo/SQLite/Results.pm",
-         "version" : "3.008"
+         "version" : "3.009"
       },
       "Mojo::SQLite::Transaction" : {
          "file" : "lib/Mojo/SQLite/Transaction.pm",
-         "version" : "3.008"
+         "version" : "3.009"
       }
    },
    "release_status" : "stable",
@@ -103,11 +103,12 @@
       },
       "x_IRC" : "ircs://irc.libera.chat/#mojo"
    },
-   "version" : "3.008",
+   "version" : "3.009",
    "x_contributors" : [
       "Adam Williamson <awilliam@redhat.com>",
       "Dan Book <grinnz@gmail.com>",
       "Dan Book <grinnz@grinnz.com>",
+      "Oliver Kurz <okurz@suse.de>",
       "Stefan Adams <stefan@adams.fm>"
    ],
    "x_generated_by_perl" : "v5.34.0",

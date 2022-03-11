@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - Fix race condition in Mojo::SQLite::Migrations where two processes could attempt to create the same migration. (#25, Oliver Kurz)
 
 3.008     2021-11-28 11:10:24 EST
   - Update documentation to indicate that upsert operations are now supported via SQL::Abstract::Pg.
