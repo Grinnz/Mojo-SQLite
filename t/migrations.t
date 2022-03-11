@@ -24,8 +24,13 @@ subtest 'Create migrations table' => sub {
   ok !(grep {/^"main"."mojo_migrations"$/i} @{$sql->db->tables}),
     'migrations table does not exist';
   is $sql->migrations->migrate->active, 0, 'active version is 0';
+  ok !(grep {/^"main"."mojo_migrations"$/i} @{$sql->db->tables}),
+    'migrations table does not exist';
+  is $sql->migrations->from_string("-- 1 up\n\n")->migrate->active, 1,
+    'active version is 1';
   ok !!(grep {/^"main"."mojo_migrations"$/i} @{$sql->db->tables}),
     'migrations table exists';
+  is $sql->migrations->migrate(0)->active, 0, 'active version is 0';
 };
 
 subtest 'Migrations from DATA section' => sub {
