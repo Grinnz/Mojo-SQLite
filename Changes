@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+3.009     2022-03-22 20:16:03 EDT
   - Fix race condition in Mojo::SQLite::Migrations where two processes could attempt to create the same migration. (#25, Oliver Kurz)
 
 3.008     2021-11-28 11:10:24 EST

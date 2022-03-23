@@ -4,7 +4,7 @@
       "Dan Book <dbook@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 6.022, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Dist::Zilla version 6.024, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "artistic_2"
    ],
@@ -111,8 +111,8 @@
       "Oliver Kurz <okurz@suse.de>",
       "Stefan Adams <stefan@adams.fm>"
    ],
-   "x_generated_by_perl" : "v5.34.0",
-   "x_serialization_backend" : "Cpanel::JSON::XS version 4.26",
+   "x_generated_by_perl" : "v5.34.1",
+   "x_serialization_backend" : "Cpanel::JSON::XS version 4.27",
    "x_spdx_expression" : "Artistic-2.0"
 }
 
