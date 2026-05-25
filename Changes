@@ -1,5 +1,7 @@
 {{$NEXT}}
   - wal_mode is now off by default, but can be enabled with the wal_mode option.
+    This will only affect newly created databases, as WAL mode is persistent once set.
+    To disable it on an existing database, issue the query: PRAGMA journal_mode=DELETE;
   - Fix issue where a transaction that failed to begin would rollback and clear the database handle error.
 
 3.009     2022-03-22 20:16:03 EDT

@@ -240,10 +240,14 @@ and persists when opening that same database in the future.
   exit unless $pid;
 
 C<wal_mode> was enabled by default until L<Mojo::SQLite> version v4.0.0; the
-C<no_wal> option (supported since version 2.002) can be specified to disable it
-in new databases but doesn't affect databases where it has already been
-enabled. See L<http://sqlite.org/wal.html> and L<DBD::SQLite/"journal_mode">
-for more information.
+C<no_wal> option (supported since version 2.002) can be specified to prevent it
+when creating new databases, but to disable it in an existing database the
+C<journal_mode> must be set manually back to the default of C<DELETE>. See
+L<http://sqlite.org/wal.html> and L<DBD::SQLite/"journal_mode"> for more
+information.
+
+  # Disable WAL mode on a database where it was previously enabled
+  $sql->db->query('PRAGMA journal_mode=DELETE');
 
 The L<double-quoted string literal misfeature
 |https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted> is
