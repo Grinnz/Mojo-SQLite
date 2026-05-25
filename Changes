@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+v4.0.0    2026-05-25 06:27:21 EDT
   - wal_mode is now off by default, but can be enabled with the wal_mode option.
     This will only affect newly created databases, as WAL mode is persistent once set.
     To disable it on an existing database, issue the query: PRAGMA journal_mode=DELETE;
