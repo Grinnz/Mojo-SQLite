@@ -148,6 +148,18 @@ my $sql = Mojo::SQLite->new;
     like $@, qr/does_not_exist/, 'right error';
     is_deeply $db->query('select * from results_test where name = ?', 'tx3')
       ->hashes->to_array, [], 'no results';
+    {
+      my $timeout = $db->dbh->sqlite_busy_timeout // 0;
+      $db->dbh->sqlite_busy_timeout(100);
+      my $tx;
+      eval {
+        $tx = $db->begin('immediate');
+        $db->begin('immediate');
+      };
+      ok $@, 'transaction failed';
+      ok $db->dbh->err, 'database error code retained';
+      $db->dbh->sqlite_busy_timeout($timeout);
+    }
   };
 
   subtest 'Issue #2' => sub {

@@ -10,7 +10,7 @@ has db => undef, weak => 1;
 my %behaviors = map { ($_ => 1) } qw(deferred immediate exclusive);
 
 sub new {
-  my $self = shift->SUPER::new(@_, rollback => 1);
+  my $self = shift->SUPER::new(@_);
   my $dbh = $self->{dbh} = $self->db->dbh;
   if (my $behavior = $self->{behavior}) {
     croak qq{Invalid transaction behavior $behavior} unless exists $behaviors{lc $behavior};
@@ -18,6 +18,7 @@ sub new {
   } else {
     $dbh->begin_work;
   }
+  $self->{rollback} = 1;
   return $self;
 }
 
