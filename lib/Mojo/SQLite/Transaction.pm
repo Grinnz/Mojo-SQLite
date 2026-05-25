@@ -3,7 +3,7 @@ use Mojo::Base -base;
 
 use Carp 'croak';
 
-our $VERSION = '3.010';
+our $VERSION = 'v4.0.1';
 
 has db => undef, weak => 1;
 

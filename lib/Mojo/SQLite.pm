@@ -14,7 +14,7 @@ use SQL::Abstract::Pg;
 use URI;
 use URI::db;
 
-our $VERSION = 'v4.0.0';
+our $VERSION = 'v4.0.1';
 
 has abstract => sub { SQL::Abstract::Pg->new(name_sep => '.', quote_char => '"') };
 has 'auto_migrate';
