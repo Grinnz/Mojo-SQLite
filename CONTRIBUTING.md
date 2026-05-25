@@ -88,18 +88,17 @@ You can learn more about Dist::Zilla at http://dzil.org/
 ## Other notes
 
 This distribution maintains the generated `META.json` and either `Makefile.PL`
-or `Build.PL` in the repository. This allows two things:
-[Travis CI](https://travis-ci.org/) can build and test the distribution without
-requiring Dist::Zilla, and the distribution can be installed directly from
-Github or a local git repository using `cpanm` for testing (again, not
-requiring Dist::Zilla).
+or `Build.PL` in the repository. This allows the distribution or its
+dependencies to be installed directly from GitHub or a local git repository
+without needing Dist::Zilla for testing or
+[CI](https://en.wikipedia.org/wiki/Continuous_integration).
 
     $ cpanm git://github.com/Author/Distribution-Name.git
-    $ cd Distribution-Name; cpanm .
+    $ cd Distribution-Name; cpanm --installdeps .
 
-Contributions are preferred in the form of a Github pull request. See
+Contributions are preferred in the form of a GitHub pull request. See
 [Using pull requests](https://help.github.com/articles/using-pull-requests/)
-for further information. You can use the Github issue tracker to report issues
+for further information. You can use the GitHub issue tracker to report issues
 without an accompanying patch.
 
 # CREDITS
