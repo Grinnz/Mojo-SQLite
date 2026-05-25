@@ -14,7 +14,7 @@ use SQL::Abstract::Pg;
 use URI;
 use URI::db;
 
-our $VERSION = '3.010';
+our $VERSION = 'v4.0.0';
 
 has abstract => sub { SQL::Abstract::Pg->new(name_sep => '.', quote_char => '"') };
 has 'auto_migrate';
@@ -29,7 +29,7 @@ has options => sub {
     PrintError          => 0,
     RaiseError          => 1,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
 };
 has 'parent';
@@ -227,21 +227,23 @@ reference.
 
 All I/O and queries are performed synchronously, and SQLite's default journal
 mode only supports concurrent reads from multiple processes while the database
-is not being written. The "Write-Ahead Log" journal mode allows multiple
+is not being written.
+
+The "Write-Ahead Log" journal mode allows multiple
 processes to read and write concurrently to the same database file (but only
 one can write at a time). WAL mode is enabled by the C<wal_mode> option,
-currently enabled by default, and persists when opening that same database in
-the future.
+and persists when opening that same database in the future.
 
   # Performed concurrently (concurrent with writing only with WAL journaling mode)
   my $pid = fork || die $!;
   say $sql->db->query(q{select datetime('now','localtime') as time})->hash->{time};
   exit unless $pid;
 
-The C<no_wal> option prevents WAL mode from being enabled in new databases but
-doesn't affect databases where it has already been enabled. C<wal_mode> may not
-be set by default in a future release. See L<http://sqlite.org/wal.html> and
-L<DBD::SQLite/"journal_mode"> for more information.
+C<wal_mode> was enabled by default until L<Mojo::SQLite> version v4.0.0; the
+C<no_wal> option (supported since version 2.002) can be specified to disable it
+in new databases but doesn't affect databases where it has already been
+enabled. See L<http://sqlite.org/wal.html> and L<DBD::SQLite/"journal_mode">
+for more information.
 
 The L<double-quoted string literal misfeature
 |https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted> is
@@ -446,8 +448,8 @@ passed as the second argument.
   # Additional options
   $sql->from_filename($filename, { PrintError => 1 });
   
-  # Readonly connection without WAL mode
-  $sql->from_filename($filename, { ReadOnly => 1, no_wal => 1 });
+  # Readonly connection
+  $sql->from_filename($filename, { ReadOnly => 1 });
   
   # Strict unicode strings and WAL mode
   use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
@@ -503,8 +505,8 @@ and applied to L</"options">.
   $sql->from_string(Mojo::URL->new->scheme('sqlite')->path($filename)->query(sqlite_see_if_its_a_number => 1));
   $sql->from_string(URI::file->new($filename)->Mojo::Base::tap(query_form => {PrintError => 1}));
 
-  # Readonly connection without WAL mode
-  $sql->from_string('data.db?ReadOnly=1&no_wal=1');
+  # Readonly connection with WAL mode
+  $sql->from_string('data.db?ReadOnly=1&wal_mode=1');
 
   # String unicode strings and WAL mode
   use DBD::SQLite::Constants ':dbd_sqlite_string_mode';

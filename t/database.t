@@ -240,7 +240,7 @@ subtest 'Double-quoted literal' => sub {
 
 subtest 'WAL mode option' => sub {
   my $journal_mode = $sql->db->query('pragma journal_mode')->arrays->first->[0];
-  is uc $journal_mode, 'WAL', 'right journal mode';
+  is uc $journal_mode, 'DELETE', 'right journal mode';
   
   my $sql = Mojo::SQLite->new;
   $sql->options->{wal_mode} = 1;

@@ -15,7 +15,7 @@ subtest 'Defaults' => sub {
     PrintError          => 0,
     RaiseError          => 1,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -29,7 +29,7 @@ subtest 'Minimal connection string with file' => sub {
     PrintError          => 0,
     RaiseError          => 1,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -43,7 +43,7 @@ subtest 'Minimal connection string with in-memory database and option' => sub {
     PrintError          => 1,
     RaiseError          => 1,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -64,7 +64,7 @@ subtest 'Connection string with absolute filename and options' => sub {
     PrintError          => 1,
     RaiseError          => 0,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -78,7 +78,7 @@ subtest 'Connection string with lots of zeros' => sub {
     PrintError          => 0,
     RaiseError          => 0,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -92,7 +92,7 @@ subtest 'Parse filename' => sub {
     PrintError          => 1,
     RaiseError          => 1,
     sqlite_string_mode  => DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -111,7 +111,7 @@ subtest 'Legacy sqlite_unicode enabled' => sub {
     PrintError          => 0,
     RaiseError          => 1,
     sqlite_unicode      => 1,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };
@@ -125,7 +125,7 @@ subtest 'Legacy sqlite_unicode disabled' => sub {
     PrintError          => 0,
     RaiseError          => 1,
     sqlite_unicode      => 0,
-    wal_mode            => 1,
+    wal_mode            => 0,
   };
   is_deeply $sql->options, $options, 'right options';
 };

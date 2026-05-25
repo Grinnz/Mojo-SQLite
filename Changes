@@ -1,4 +1,5 @@
 {{$NEXT}}
+  - wal_mode is now off by default, but can be enabled with the wal_mode option.
 
 3.009     2022-03-22 20:16:03 EDT
   - Fix race condition in Mojo::SQLite::Migrations where two processes could attempt to create the same migration. (#25, Oliver Kurz)
