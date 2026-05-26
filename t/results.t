@@ -148,18 +148,6 @@ my $sql = Mojo::SQLite->new;
     like $@, qr/does_not_exist/, 'right error';
     is_deeply $db->query('select * from results_test where name = ?', 'tx3')
       ->hashes->to_array, [], 'no results';
-    {
-      my $timeout = $db->dbh->sqlite_busy_timeout // 0;
-      $db->dbh->sqlite_busy_timeout(100);
-      my $tx;
-      eval {
-        $tx = $db->begin('immediate');
-        $db->begin('immediate');
-      };
-      ok $@, 'transaction failed';
-      ok $db->dbh->err, 'database error code retained';
-      $db->dbh->sqlite_busy_timeout($timeout);
-    }
   };
 
   subtest 'Issue #2' => sub {
@@ -168,7 +156,35 @@ my $sql = Mojo::SQLite->new;
     my $results2 = $db->query('select 1 as one');
     undef $results1;
     is_deeply $results2->hashes, [{one => 1}], 'right structure';
-  }
+  };
+
+  subtest 'Failures to start transactions' => sub {
+    my $tx = $db->begin;
+    eval { $db->begin };
+    ok $@, 'failed to start transaction in transaction';
+    ok $db->dbh->err, 'database error code retrieved';
+    ok !$db->dbh->{AutoCommit}, 'transaction is still open';
+    $tx->commit;
+
+    $tx = $db->begin('immediate');
+    eval { $db->begin('immediate') };
+    ok $@, 'failed to start transaction in transaction';
+    ok $db->dbh->err, 'database error code retrieved';
+    ok !$db->dbh->sqlite_get_autocommit, 'transaction is still open';
+    $tx->commit;
+
+    my $db2 = $sql->db;
+    my $timeout = $db2->dbh->sqlite_busy_timeout // 0;
+    $db2->dbh->sqlite_busy_timeout(100);
+    $tx = $db->begin('immediate');
+    eval { $db2->begin('immediate') };
+    ok $@, 'transaction failed';
+    ok $db2->dbh->err, 'database error code retained';
+    $db2->dbh->sqlite_busy_timeout($timeout);
+    $db2->dbh->rollback;
+    ok !$db->dbh->sqlite_get_autocommit, 'transaction is still open';
+    $tx->commit;
+  };
 }
 
 done_testing();
